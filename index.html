@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Collide — Summer's Room</title>
+  <style>
+    :root {
+      --navy: #1b3a6b;
+      --ice: #a8c4e0;
+      --cream: #faf7f2;
+      --wall: #d8e6f2;
+      --floor: #b89b72;
+      --wood: #8a6540;
+      --text: #1a1a2e;
+      --red: #c0392b;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #08131e;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: Georgia, serif;
+      padding: 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 22px;
+    }
+
+    .title {
+      font-size: 30px;
+      font-style: italic;
+      letter-spacing: 8px;
+      color: var(--ice);
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: rgba(168,196,224,0.45);
+      text-transform: uppercase;
+      margin-top: 6px;
+      font-family: sans-serif;
+    }
+
+    /* ── ROOM SHELL ── */
+    .room-wrapper {
+      position: relative;
+      width: 900px;
+      height: 580px;
+    }
+
+    .room-border {
+      position: absolute;
+      inset: 0;
+      border: 14px solid #1a2d42;
+      border-radius: 6px;
+      box-shadow:
+        0 0 0 2px #263c54,
+        0 0 80px rgba(100,160,220,0.18),
+        inset 0 0 50px rgba(0,0,0,0.5);
+      z-index: 200;
+      pointer-events: none;
+    }
+
+    .room {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      border-radius: 2px;
+    }
+
+    /* Walls */
+    .wall-back {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 61%;
+      background: linear-gradient(160deg, #c4d8ee 0%, #dce8f6 45%, #ccd8ea 100%);
+    }
+
+    .wall-back::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        90deg, transparent, transparent 59px, rgba(0,0,0,0.025) 60px
+      );
+    }
+
+    .wall-side-l {
+      position: absolute;
+      top: 0; left: 0;
+      width: 11%;
+      height: 61%;
+      background: linear-gradient(to right, #b0c8e0, #c4d8ee);
+    }
+
+    .wall-side-r {
+      position: absolute;
+      top: 0; right: 0;
+      width: 11%;
+      height: 61%;
+      background: linear-gradient(to left, #b0c8e0, #c4d8ee);
+    }
+
+    .floor {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 39%;
+      background: linear-gradient(160deg, #c8aa82 0%, #b89b72 55%, #a08558 100%);
+    }
+
+    .floor::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        90deg, transparent, transparent 79px, rgba(0,0,0,0.05) 80px
+      );
+    }
+
+    .baseboard {
+      position: absolute;
+      bottom: 39%;
+      left: 0; right: 0;
+      height: 11px;
+      background: linear-gradient(to bottom, #a89060, #8a7248);
+      z-index: 5;
+    }
+
+    /* Lamp glow ambient */
+    .lamp-glow {
+      position: absolute;
+      top: 10%;
+      right: 12%;
+      width: 380px;
+      height: 380px;
+      background: radial-gradient(ellipse, rgba(245,220,120,0.28) 0%, rgba(245,215,100,0.08) 45%, transparent 70%);
+      pointer-events: none;
+      z-index: 15;
+    }
+
+    /* ── FAIRY LIGHTS ── */
+    .fairy-lights {
+      position: absolute;
+      top: 12px;
+      left: 3%;
+      right: 3%;
+      height: 32px;
+      z-index: 18;
+      pointer-events: none;
+    }
+
+    .fl-bulb {
+      position: absolute;
+      width: 8px;
+      height: 10px;
+      border-radius: 50% 50% 40% 40%;
+      animation: flGlow var(--d, 2s) ease-in-out infinite alternate;
+      animation-delay: var(--dl, 0s);
+    }
+
+    @keyframes flGlow {
+      from { opacity: 0.55; box-shadow: 0 0 4px currentColor; }
+      to   { opacity: 1;    box-shadow: 0 0 12px currentColor, 0 0 24px currentColor; }
+    }
+
+    /* ── CLICKABLE HOTSPOT ── */
+    .spot {
+      position: absolute;
+      cursor: pointer;
+      z-index: 40;
+      transition: filter 0.22s ease, transform 0.22s ease;
+    }
+
+    .spot:hover {
+      filter: brightness(1.18) drop-shadow(0 0 10px rgba(168,196,224,0.75));
+      transform: scale(1.04) translateY(-2px);
+    }
+
+    .spot::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: calc(100% + 9px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(27,58,107,0.95);
+      color: var(--ice);
+      padding: 5px 13px;
+      border-radius: 20px;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+      font-family: sans-serif;
+    }
+
+    .spot:hover::after { opacity: 1; }
+
+    /* ── WINDOW ── */
+    .win-wrap {
+      top: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 200px;
+      height: 230px;
+    }
+
+    .win-glass {
+      width: 200px;
+      height: 230px;
+      border: 8px solid #8a7050;
+      border-radius: 3px;
+      background: linear-gradient(175deg, #08121e, #0e1e30 55%, #101820);
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 0 22px rgba(0,0,0,0.6), 2px 2px 10px rgba(0,0,0,0.35);
+    }
+
+    .win-rink-glow {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 55px;
+      background: linear-gradient(to top, rgba(70,150,255,0.35), transparent);
+    }
+
+    .win-h { position: absolute; top: 50%; left: 0; right: 0; height: 8px; background: #8a7050; transform: translateY(-50%); }
+    .win-v { position: absolute; left: 50%; top: 0; bottom: 0; width: 8px; background: #8a7050; transform: translateX(-50%); }
+
+    .star {
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+      animation: twinkle var(--d, 3s) ease-in-out infinite alternate;
+      animation-delay: var(--dl, 0s);
+    }
+
+    @keyframes twinkle {
+      from { opacity: 0.2; }
+      to   { opacity: 1; }
+    }
+
+    .curtain-l, .curtain-r {
+      position: absolute;
+      top: -8px;
+      width: 55px;
+      height: 250px;
+      background: linear-gradient(145deg, #1e3a5f, #162d4a);
+      z-index: 3;
+    }
+
+    .curtain-l { left: -30px; clip-path: polygon(0 0, 100% 0, 78% 100%, 0 100%); }
+    .curtain-r { right: -30px; clip-path: polygon(0 0, 100% 0, 100% 100%, 22% 100%); }
+
+    /* ── PINBOARD ── */
+    .pb-wrap {
+      top: 42px;
+      left: 105px;
+      width: 190px;
+      height: 145px;
+    }
+
+    .pb-bg {
+      width: 190px;
+      height: 145px;
+      background: #c4a882;
+      border: 5px solid var(--wood);
+      border-radius: 3px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 2px 2px 10px rgba(0,0,0,0.28);
+    }
+
+    .pb-bg::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle 1px at 2px 2px, rgba(0,0,0,0.07) 1px, transparent 0);
+      background-size: 6px 6px;
+    }
+
+    .pb-paper {
+      position: absolute;
+      background: #fefce8;
+      border-radius: 1px;
+      box-shadow: 1px 1px 5px rgba(0,0,0,0.22);
+      padding: 6px 7px;
+      font-family: sans-serif;
+      font-size: 7px;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    .pb-pin {
+      position: absolute;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #e74c3c, #922b21);
+      top: -4px; left: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    }
+
+    /* ── BOOKSHELF ── */
+    .shelf-wrap {
+      bottom: 39%;
+      left: 55px;
+      width: 160px;
+      height: 185px;
+      z-index: 30;
+    }
+
+    .shelf-unit {
+      width: 160px;
+      height: 185px;
+      background: var(--wood);
+      border: 2px solid #6b4f2a;
+      border-radius: 3px;
+      position: relative;
+      box-shadow: 3px 3px 14px rgba(0,0,0,0.32);
+    }
+
+    .shelf-plank {
+      position: absolute;
+      left: 0; right: 0;
+      height: 10px;
+      background: #a07848;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.22);
+    }
+
+    .bk {
+      position: absolute;
+      border-radius: 1px 3px 3px 1px;
+      box-shadow: 1px 0 3px rgba(0,0,0,0.3);
+    }
+
+    /* ── DESK ── */
+    .desk-surface {
+      position: absolute;
+      bottom: 39%;
+      right: 50px;
+      width: 305px;
+      height: 14px;
+      background: linear-gradient(to bottom, #9a7450, #7a5830);
+      border-radius: 3px 3px 0 0;
+      box-shadow: 0 4px 22px rgba(0,0,0,0.38);
+      z-index: 28;
+    }
+
+    .desk-surface::before,
+    .desk-surface::after {
+      content: '';
+      position: absolute;
+      bottom: -68px;
+      width: 12px;
+      height: 68px;
+      background: #7a5830;
+      border-radius: 0 0 2px 2px;
+    }
+
+    .desk-surface::before { left: 10px; }
+    .desk-surface::after  { right: 10px; }
+
+    /* ── LAMP ── */
+    .lamp-wrap {
+      bottom: calc(39% + 14px);
+      right: 75px;
+      width: 58px;
+      height: 100px;
+      z-index: 42;
+    }
+
+    .lamp-shade {
+      width: 58px;
+      height: 36px;
+      background: linear-gradient(145deg, #ead878, #c4a030);
+      clip-path: polygon(12% 0%, 88% 0%, 100% 100%, 0% 100%);
+      box-shadow: 0 0 28px rgba(245,210,80,0.75), 0 0 55px rgba(245,210,80,0.28);
+    }
+
+    .lamp-pole {
+      width: 5px;
+      height: 50px;
+      background: linear-gradient(to right, #aaa, #888);
+      margin: 0 auto;
+    }
+
+    .lamp-base {
+      width: 22px;
+      height: 8px;
+      background: linear-gradient(to bottom, #bbb, #888);
+      margin: 0 auto;
+      border-radius: 3px;
+    }
+
+    /* ── NOTEBOOK ── */
+    .nb-wrap {
+      bottom: calc(39% + 14px);
+      right: 162px;
+      width: 66px;
+      height: 86px;
+      z-index: 42;
+    }
+
+    .nb-cover {
+      width: 66px;
+      height: 86px;
+      background: linear-gradient(145deg, #1e4080, #1b3a6b);
+      border-radius: 2px 6px 6px 2px;
+      border-left: 7px solid #0e1e3a;
+      box-shadow: 3px 3px 10px rgba(0,0,0,0.42);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .nb-label {
+      position: absolute;
+      top: 10px; left: 8px; right: 6px;
+      height: 13px;
+      background: rgba(255,255,255,0.18);
+      border-radius: 2px;
+    }
+
+    .nb-lines { position: absolute; top: 34px; left: 8px; right: 6px; }
+    .nb-lines div { height: 1px; background: rgba(255,255,255,0.14); margin-bottom: 7px; }
+
+    /* ── PHONE ── */
+    .phone-wrap {
+      bottom: calc(39% + 16px);
+      right: 248px;
+      width: 30px;
+      height: 58px;
+      z-index: 42;
+    }
+
+    .phone-body {
+      width: 30px;
+      height: 58px;
+      background: linear-gradient(145deg, #2a2a2a, #111);
+      border-radius: 7px;
+      border: 1px solid #444;
+      box-shadow: 2px 2px 8px rgba(0,0,0,0.45);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .phone-screen {
+      position: absolute;
+      inset: 3px;
+      background: linear-gradient(145deg, #1a3a5a, #0f2030);
+      border-radius: 5px;
+    }
+
+    .phone-notif {
+      position: absolute;
+      top: 8px; left: 7px; right: 7px;
+      height: 3px;
+      background: rgba(168,196,224,0.6);
+      border-radius: 2px;
+    }
+
+    /* ── GLASSES ── */
+    .glasses-wrap {
+      bottom: calc(39% + 18px);
+      right: 295px;
+      width: 58px;
+      height: 22px;
+      z-index: 42;
+    }
+
+    /* ── JERSEY (easter egg) ── */
+    .jersey-wrap {
+      bottom: calc(39% + 16px);
+      right: 368px;
+      width: 44px;
+      height: 56px;
+      z-index: 38;
+      opacity: 0.72;
+    }
+
+    .jersey-body {
+      width: 44px;
+      height: 56px;
+      background: linear-gradient(160deg, #c0392b, #8e1a10);
+      clip-path: polygon(24% 0%, 76% 0%, 92% 12%, 100% 12%, 100% 100%, 0% 100%, 0% 12%, 8% 12%);
+      box-shadow: 2px 2px 8px rgba(0,0,0,0.35);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .jersey-num {
+      color: rgba(255,255,255,0.85);
+      font-family: sans-serif;
+      font-size: 17px;
+      font-weight: bold;
+      padding-top: 8px;
+    }
+
+    /* ── BED ── */
+    .bed-wrap {
+      bottom: 0;
+      left: 25px;
+      width: 148px;
+      height: 118px;
+      z-index: 35;
+    }
+
+    .bed-frame {
+      width: 148px;
+      height: 118px;
+      background: linear-gradient(to bottom, #8a6540, #7a5830);
+      border-radius: 4px;
+      position: relative;
+      box-shadow: 3px 3px 14px rgba(0,0,0,0.35);
+    }
+
+    .bed-mattress {
+      position: absolute;
+      top: 8px; left: 6px; right: 6px;
+      height: 68px;
+      background: linear-gradient(to bottom, #ece4d4, #dcd4c0);
+      border-radius: 3px;
+    }
+
+    .bed-pillow {
+      position: absolute;
+      top: 12px; left: 10px;
+      width: 52px; height: 40px;
+      background: linear-gradient(145deg, #f0f4f8, #dce8f0);
+      border-radius: 6px;
+      box-shadow: 1px 1px 4px rgba(0,0,0,0.15);
+    }
+
+    .bed-pillow2 {
+      position: absolute;
+      top: 12px; left: 70px;
+      width: 50px; height: 40px;
+      background: linear-gradient(145deg, #dde8f2, #c8daea);
+      border-radius: 6px;
+      box-shadow: 1px 1px 4px rgba(0,0,0,0.15);
+    }
+
+    .bed-blanket {
+      position: absolute;
+      bottom: 0; left: 6px; right: 6px;
+      height: 46px;
+      background: linear-gradient(160deg, #1e4080, #1a3668);
+      border-top: 3px solid #2a52a0;
+      border-radius: 0 0 2px 2px;
+    }
+
+    /* ── PLANT (decorative) ── */
+    .plant {
+      position: absolute;
+      bottom: calc(39% + 14px);
+      left: 248px;
+      width: 36px;
+      height: 58px;
+      z-index: 30;
+      pointer-events: none;
+    }
+
+    /* ── HINT ── */
+    .hint {
+      position: absolute;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(168,196,224,0.4);
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      font-family: sans-serif;
+      pointer-events: none;
+      white-space: nowrap;
+      animation: breathe 4s ease infinite;
+      z-index: 50;
+    }
+
+    @keyframes breathe {
+      0%, 100% { opacity: 0.35; }
+      50%       { opacity: 0.8; }
+    }
+
+    /* ── MODAL ── */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(8,19,30,0.88);
+      z-index: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.28s ease;
+    }
+
+    .overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal {
+      background: var(--cream);
+      width: 440px;
+      max-width: 92vw;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 28px 80px rgba(0,0,0,0.65);
+      transform: translateY(28px) scale(0.94);
+      transition: transform 0.34s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .overlay.open .modal {
+      transform: translateY(0) scale(1);
+    }
+
+    .modal-head {
+      background: var(--navy);
+      padding: 18px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-head-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .modal-icon { font-size: 20px; }
+
+    .modal-title {
+      font-size: 11px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--ice);
+      font-family: sans-serif;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: rgba(168,196,224,0.55);
+      font-size: 24px;
+      cursor: pointer;
+      transition: color 0.2s;
+      line-height: 1;
+    }
+
+    .modal-close:hover { color: white; }
+
+    .modal-body { padding: 26px; }
+
+    /* Content styles */
+    .tag {
+      display: inline-block;
+      background: var(--navy);
+      color: var(--ice);
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 3px 11px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+      font-family: sans-serif;
+    }
+
+    .quote {
+      font-style: italic;
+      font-size: 17px;
+      line-height: 1.78;
+      color: #1a2a40;
+      border-left: 3px solid var(--ice);
+      padding-left: 18px;
+    }
+
+    .schedule {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 2.1;
+      background: #f0f4f8;
+      padding: 18px 20px;
+      border-radius: 6px;
+      border-left: 3px solid var(--navy);
+      color: var(--text);
+    }
+
+    .schedule .t { color: var(--navy); font-weight: bold; }
+    .schedule .s { text-decoration: line-through; opacity: 0.4; }
+
+    .prose {
+      font-size: 14px;
+      line-height: 1.82;
+      color: #1a2a40;
+    }
+
+    .prose .hl { color: var(--navy); font-weight: bold; }
+
+    .sticky {
+      background: #fefce8;
+      padding: 16px;
+      border-radius: 5px;
+      font-family: 'Courier New', monospace;
+      font-size: 12.5px;
+      line-height: 1.7;
+      transform: rotate(-1.2deg);
+      box-shadow: 2px 2px 8px rgba(0,0,0,0.12);
+      margin-top: 14px;
+    }
+
+    .imessages {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .mw { display: flex; flex-direction: column; }
+    .mw.r { align-items: flex-end; }
+    .mw.l { align-items: flex-start; }
+
+    .mn {
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: rgba(0,0,0,0.38);
+      margin-bottom: 3px;
+      font-family: sans-serif;
+    }
+
+    .mb {
+      max-width: 78%;
+      padding: 10px 15px;
+      border-radius: 18px;
+      font-size: 14px;
+      line-height: 1.45;
+      font-family: sans-serif;
+    }
+
+    .mb.recv {
+      background: #e5e5ea;
+      color: #1c1c1e;
+      border-bottom-left-radius: 5px;
+    }
+
+    .mb.sent {
+      background: var(--navy);
+      color: white;
+      border-bottom-right-radius: 5px;
+    }
+
+    .egg {
+      font-style: italic;
+      font-size: 15px;
+      line-height: 1.82;
+      color: var(--red);
+      text-align: center;
+      padding: 6px 0;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="title">Collide</div>
+  <div class="subtitle">Summer's Room &mdash; Explore her world</div>
+</header>
+
+<div class="room-wrapper">
+  <div class="room-border"></div>
+  <div class="room">
+
+    <!-- Walls & floor -->
+    <div class="wall-side-l"></div>
+    <div class="wall-side-r"></div>
+    <div class="wall-back"></div>
+    <div class="floor"></div>
+    <div class="baseboard"></div>
+
+    <!-- Ambient lamp glow -->
+    <div class="lamp-glow"></div>
+
+    <!-- Fairy lights (built by JS) -->
+    <div class="fairy-lights" id="fl"></div>
+
+    <!-- ── WINDOW ── -->
+    <div class="spot win-wrap" data-tip="The Window" onclick="open_('window')">
+      <div class="win-glass" id="winGlass">
+        <div class="win-rink-glow"></div>
+        <div class="win-h"></div>
+        <div class="win-v"></div>
+      </div>
+      <div class="curtain-l"></div>
+      <div class="curtain-r"></div>
+    </div>
+
+    <!-- ── PINBOARD ── -->
+    <div class="spot pb-wrap" data-tip="Her Pinboard" onclick="open_('pinboard')">
+      <div class="pb-bg">
+        <div class="pb-paper" style="top:11px;left:9px;width:74px;height:62px;transform:rotate(-2deg)">
+          <div class="pb-pin"></div>
+          <strong>GRAD APP</strong><br>Hartwell Sports<br>Psych Program<br>✓ GPA: 3.9<br>✓ Research hrs<br>☐ Letters
+        </div>
+        <div class="pb-paper" style="top:10px;left:92px;width:82px;height:55px;transform:rotate(1.5deg)">
+          <div class="pb-pin"></div>
+          <strong>THIS WEEK</strong><br>• Finish study<br>• Ace finals<br>• Do not get<br>&nbsp;&nbsp;distracted
+        </div>
+        <div class="pb-paper" style="top:80px;left:15px;width:155px;height:48px;transform:rotate(-0.8deg)">
+          <div class="pb-pin"></div>
+          Study: Athletes & Performance<br>Subject: #7 — Crawford, A.
+        </div>
+      </div>
+    </div>
+
+    <!-- ── BOOKSHELF ── -->
+    <div class="spot shelf-wrap" data-tip="Her Bookshelf" onclick="open_('shelf')">
+      <div class="shelf-unit">
+        <div class="shelf-plank" style="top:0"></div>
+        <div class="shelf-plank" style="top:88px"></div>
+        <div class="shelf-plank" style="top:173px"></div>
+        <!-- Top shelf -->
+        <div class="bk" style="left:6px;bottom:100px;width:16px;height:70px;background:#c0392b"></div>
+        <div class="bk" style="left:24px;bottom:100px;width:13px;height:65px;background:#1b3a6b"></div>
+        <div class="bk" style="left:39px;bottom:100px;width:18px;height:72px;background:#27ae60"></div>
+        <div class="bk" style="left:59px;bottom:100px;width:14px;height:62px;background:#8e44ad"></div>
+        <div class="bk" style="left:75px;bottom:100px;width:17px;height:68px;background:#e67e22"></div>
+        <div class="bk" style="left:94px;bottom:100px;width:15px;height:74px;background:#2c3e50"></div>
+        <div class="bk" style="left:111px;bottom:100px;width:20px;height:66px;background:#16a085"></div>
+        <div class="bk" style="left:133px;bottom:100px;width:14px;height:71px;background:#c0392b;opacity:.65"></div>
+        <!-- Bottom shelf -->
+        <div class="bk" style="left:6px;bottom:12px;width:19px;height:66px;background:#2c3e50"></div>
+        <div class="bk" style="left:27px;bottom:12px;width:16px;height:70px;background:#8e44ad"></div>
+        <div class="bk" style="left:45px;bottom:12px;width:21px;height:62px;background:#1b3a6b"></div>
+        <div class="bk" style="left:68px;bottom:12px;width:14px;height:68px;background:#e74c3c"></div>
+        <div class="bk" style="left:84px;bottom:12px;width:18px;height:65px;background:#27ae60;opacity:.8"></div>
+        <div class="bk" style="left:104px;bottom:12px;width:15px;height:60px;background:#e67e22"></div>
+        <div class="bk" style="left:121px;bottom:12px;width:24px;height:73px;background:#c0392b"></div>
+      </div>
+    </div>
+
+    <!-- ── PLANT (decorative) ── -->
+    <div class="plant">
+      <svg width="36" height="58" viewBox="0 0 36 58" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="12,44 24,44 22,58 14,58" fill="#a05828"/>
+        <rect x="17" y="20" width="3" height="24" fill="#2d7a2d"/>
+        <ellipse cx="10" cy="28" rx="10" ry="7" fill="#2d7a2d" transform="rotate(-30 10 28)"/>
+        <ellipse cx="26" cy="24" rx="10" ry="7" fill="#3a9a3a" transform="rotate(30 26 24)"/>
+        <ellipse cx="11" cy="18" rx="8" ry="5" fill="#248c24" transform="rotate(-20 11 18)"/>
+      </svg>
+    </div>
+
+    <!-- ── DESK SURFACE ── -->
+    <div class="desk-surface"></div>
+
+    <!-- ── JERSEY (easter egg) ── -->
+    <div class="spot jersey-wrap" data-tip="What's this...?" onclick="open_('jersey')">
+      <div class="jersey-body">
+        <div class="jersey-num">7</div>
+      </div>
+    </div>
+
+    <!-- ── GLASSES ── -->
+    <div class="spot glasses-wrap" data-tip="Her Glasses" onclick="open_('glasses')">
+      <svg width="58" height="22" viewBox="0 0 58 22">
+        <rect x="1" y="3" width="22" height="16" rx="6" ry="9" fill="none" stroke="#1a1a3a" stroke-width="2.4"/>
+        <rect x="35" y="3" width="22" height="16" rx="6" ry="9" fill="none" stroke="#1a1a3a" stroke-width="2.4"/>
+        <line x1="23" y1="10" x2="35" y2="10" stroke="#1a1a3a" stroke-width="2"/>
+        <line x1="0" y1="7"  x2="1"  y2="7"  stroke="#1a1a3a" stroke-width="2" stroke-linecap="round"/>
+        <line x1="57" y1="7" x2="58" y2="7" stroke="#1a1a3a" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+
+    <!-- ── PHONE ── -->
+    <div class="spot phone-wrap" data-tip="Her Phone" onclick="open_('phone')">
+      <div class="phone-body">
+        <div class="phone-screen">
+          <div class="phone-notif"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── NOTEBOOK ── -->
+    <div class="spot nb-wrap" data-tip="Her Planner" onclick="open_('notebook')">
+      <div class="nb-cover">
+        <div class="nb-label"></div>
+        <div class="nb-lines">
+          <div></div><div></div><div></div><div></div><div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── LAMP ── -->
+    <div class="spot lamp-wrap" data-tip="Her Lamp" onclick="open_('lamp')">
+      <div class="lamp-shade"></div>
+      <div class="lamp-pole"></div>
+      <div class="lamp-base"></div>
+    </div>
+
+    <!-- ── BED ── -->
+    <div class="spot bed-wrap" data-tip="Her Bed" onclick="open_('bed')">
+      <div class="bed-frame">
+        <div class="bed-mattress"></div>
+        <div class="bed-pillow"></div>
+        <div class="bed-pillow2"></div>
+        <div class="bed-blanket"></div>
+      </div>
+    </div>
+
+    <!-- Hint -->
+    <div class="hint">click anything to explore</div>
+  </div>
+</div>
+
+<!-- ── MODAL ── -->
+<div class="overlay" id="overlay" onclick="closeOut(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-head-left">
+        <span class="modal-icon" id="mIcon"></span>
+        <span class="modal-title" id="mTitle"></span>
+      </div>
+      <button class="modal-close" onclick="close_()">×</button>
+    </div>
+    <div class="modal-body" id="mBody"></div>
+  </div>
+</div>
+
+<script>
+// ── MODAL CONTENT ──
+const reveals = {
+  window: {
+    icon: '🌙', title: 'The Window',
+    html: `
+      <div class="tag">Night View</div>
+      <div class="quote">
+        "She could see the rink from here — the distant blue-white glow cutting through the dark. Two years she had spent learning to look past it.<br><br>
+        Tonight, for the first time, she didn't look away."
+      </div>`
+  },
+  pinboard: {
+    icon: '📌', title: 'Her Pinboard',
+    html: `
+      <div class="tag">Summer's Goals</div>
+      <div class="prose">
+        <p>Behind the grad school draft, pinned crooked — the only crooked thing in the room — is a sticky note in blue ballpoint:</p>
+      </div>
+      <div class="sticky">
+        <strong>Things that will NOT derail me:</strong><br>
+        — bad weather<br>
+        — group projects<br>
+        — unreliable lab subjects<br>
+        — <span style="text-decoration:line-through;opacity:0.45">hockey players</span>
+      </div>`
+  },
+  shelf: {
+    icon: '📚', title: 'Her Bookshelf',
+    html: `
+      <div class="tag">Reading List</div>
+      <div class="prose">
+        <p>The psychology spines are worn flat, dog-eared, annotated in her neat, unforgiving hand.</p>
+        <br>
+        <p><span class="hl">Sport Psychology: Theory &amp; Practice</span> — flagged on page 214: <em style="font-style:italic">"The athlete's greatest opponent lives between their ears."</em></p>
+        <br>
+        <p>Wedged between two textbooks: a battered copy of <em>Pride and Prejudice</em>. No annotations. Just fingerprints on page one and page three hundred and twelve.</p>
+        <br>
+        <p style="opacity:0.55;font-size:13px;font-style:italic">She'd deny it if you asked.</p>
+      </div>`
+  },
+  bed: {
+    icon: '🌙', title: 'Her Bed',
+    html: `
+      <div class="tag">10:52 PM</div>
+      <div class="quote">
+        "She had a plan for the year. A tight, precise, color-coded plan.<br><br>
+        It did not include lying awake at eleven thinking about the way he looked at her across the ice — not at her research clipboard, not past her.<br><br>
+        At her."
+      </div>`
+  },
+  jersey: {
+    icon: '🏒', title: '...Wait.',
+    html: `
+      <div class="tag">Easter Egg</div>
+      <div class="egg">
+        A red jersey. Number 7.<br>
+        Folded. <em>Of course</em> it's folded.<br><br>
+        <em>"It was just easier than giving it back.<br>That's all."</em><br><br>
+        <span style="font-size:12px;opacity:0.55;font-style:normal">She had said that to herself four times this week.</span>
+      </div>`
+  },
+  glasses: {
+    icon: '👓', title: 'Her Glasses',
+    html: `
+      <div class="tag">Character Note</div>
+      <div class="quote">
+        "She saw everything clearly.<br><br>
+        Data. Patterns. The way people gave themselves away under observation.<br><br>
+        Aiden Crawford, she had decided on day one, was an open book.<br><br>
+        She was wrong about that."
+      </div>`
+  },
+  phone: {
+    icon: '📱', title: 'Her Phone',
+    html: `
+      <div class="tag">New Message</div>
+      <div class="imessages">
+        <div class="mw r">
+          <div class="mn">Summer</div>
+          <div class="mb sent">I need you to complete the behavioral questionnaire by Thursday. All 47 questions.</div>
+        </div>
+        <div class="mw l">
+          <div class="mn">Crawford #7</div>
+          <div class="mb recv">47?? is this a study or a trial</div>
+        </div>
+        <div class="mw r">
+          <div class="mn">Summer</div>
+          <div class="mb sent">It's for science. Thursday.</div>
+        </div>
+        <div class="mw l">
+          <div class="mn">Crawford #7</div>
+          <div class="mb recv">what if I have questions for you</div>
+        </div>
+        <div class="mw r">
+          <div class="mn">Summer</div>
+          <div class="mb sent">You don't.</div>
+        </div>
+        <div class="mw l">
+          <div class="mn">Crawford #7</div>
+          <div class="mb recv">favorite color</div>
+        </div>
+        <div class="mw r">
+          <div class="mn">Summer</div>
+          <div class="mb sent">Thursday, Crawford.</div>
+        </div>
+      </div>`
+  },
+  notebook: {
+    icon: '📓', title: 'Her Planner',
+    html: `
+      <div class="tag">This Week</div>
+      <div class="schedule">
+        <span class="t">MON</span> — Lecture, research session, library 6–9<br>
+        <span class="t">TUE</span> — Office hours, <span class="s">avoid the rink</span> study group<br>
+        <span class="t">WED</span> — Subject observation (rink, 7 PM) ⚠<br>
+        <span class="t">THU</span> — Questionnaire due from Crawford<br>
+        <span class="t">FRI</span> — Data analysis, grad app draft<br>
+        <span class="t">SAT</span> — <span class="s">nothing</span> more research<br>
+        <span class="t">SUN</span> — Everything I didn't finish
+      </div>`
+  },
+  lamp: {
+    icon: '🕯️', title: 'Late Night',
+    html: `
+      <div class="tag">2:14 AM</div>
+      <div class="quote">
+        "The lamp was the only light on in the building at this hour. She liked it that way — the quiet, just her and the data.<br><br>
+        She did not like that she kept losing her place in the spreadsheet.<br><br>
+        She did not like what she was losing it to."
+      </div>`
+  }
+};
+
+function open_(key) {
+  const d = reveals[key];
+  if (!d) return;
+  document.getElementById('mIcon').textContent  = d.icon;
+  document.getElementById('mTitle').textContent = d.title;
+  document.getElementById('mBody').innerHTML    = d.html;
+  document.getElementById('overlay').classList.add('open');
+}
+
+function close_() {
+  document.getElementById('overlay').classList.remove('open');
+}
+
+function closeOut(e) {
+  if (e.target === document.getElementById('overlay')) close_();
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') close_(); });
+
+// ── FAIRY LIGHTS ──
+const fl    = document.getElementById('fl');
+const colors = ['#f5d020','#a8e6cf','#ff8b94','#a8c4e0','#ffd3a5','#c3b1e1','#f8c8d4'];
+const count  = 20;
+
+const svgNS = 'http://www.w3.org/2000/svg';
+const svg   = document.createElementNS(svgNS, 'svg');
+svg.setAttribute('width', '100%');
+svg.setAttribute('height', '32');
+svg.style.cssText = 'position:absolute;top:0;left:0;pointer-events:none';
+
+const pathEl = document.createElementNS(svgNS, 'path');
+let d = 'M 0 6';
+for (let i = 1; i <= count; i++) {
+  const x = (820 / count) * i;
+  const y = i % 2 === 0 ? 4 : 13;
+  d += ` L ${x} ${y}`;
+}
+pathEl.setAttribute('d', d);
+pathEl.setAttribute('stroke', 'rgba(180,180,180,0.38)');
+pathEl.setAttribute('stroke-width', '1');
+pathEl.setAttribute('fill', 'none');
+svg.appendChild(pathEl);
+fl.appendChild(svg);
+
+for (let i = 0; i < count; i++) {
+  const b = document.createElement('div');
+  b.className = 'fl-bulb';
+  const x   = (100 / count) * i + (100 / count / 2);
+  const y   = i % 2 === 0 ? 1 : 10;
+  const col = colors[i % colors.length];
+  b.style.cssText = `left:${x}%;top:${y}px;background:${col};color:${col};--d:${1.4 + Math.random() * 2.2}s;--dl:${(Math.random() * 2).toFixed(2)}s`;
+  fl.appendChild(b);
+}
+
+// ── STARS ──
+const win = document.getElementById('winGlass');
+const starData = [
+  [14,12,2],[42,22,1],[72,8,2],[86,28,1],[22,44,1],[62,48,2],
+  [9,58,1],[52,18,1],[80,52,2],[36,33,1],[66,24,2],[91,14,1],
+  [20,68,1],[48,38,1],[78,38,2],[30,14,1],[58,62,1],[44,52,2]
+];
+starData.forEach(([l, t, sz]) => {
+  const s = document.createElement('div');
+  s.className = 'star';
+  s.style.cssText = `left:${l}%;top:${t}%;width:${sz}px;height:${sz}px;--d:${2 + Math.random() * 3}s;--dl:${(Math.random() * 3).toFixed(2)}s`;
+  win.appendChild(s);
+});
+</script>
+</body>
+</html>
