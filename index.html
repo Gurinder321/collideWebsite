@@ -9,9 +9,6 @@
       --navy: #1b3a6b;
       --ice: #a8c4e0;
       --cream: #faf7f2;
-      --wall: #d8e6f2;
-      --floor: #b89b72;
-      --wood: #8a6540;
       --text: #1a1a2e;
       --red: #c0392b;
     }
@@ -26,16 +23,18 @@
       align-items: center;
       justify-content: center;
       font-family: Georgia, serif;
-      padding: 20px;
+      overflow: hidden;
     }
 
     header {
       text-align: center;
-      margin-bottom: 22px;
+      margin-bottom: 18px;
+      position: relative;
+      z-index: 10;
     }
 
     .title {
-      font-size: 30px;
+      font-size: 28px;
       font-style: italic;
       letter-spacing: 8px;
       color: var(--ice);
@@ -45,154 +44,130 @@
     .subtitle {
       font-size: 11px;
       letter-spacing: 4px;
-      color: rgba(168,196,224,0.45);
+      color: rgba(168,196,224,0.4);
       text-transform: uppercase;
-      margin-top: 6px;
+      margin-top: 5px;
       font-family: sans-serif;
     }
 
-    /* ── ROOM SHELL ── */
-    .room-wrapper {
+    /* ── 3D SCENE WRAPPER ── */
+    .scene {
       position: relative;
       width: 900px;
       height: 580px;
+      perspective: 900px;
+      cursor: crosshair;
     }
 
-    .room-border {
+    /* The card that rotates in 3D */
+    .card {
       position: absolute;
       inset: 0;
-      border: 14px solid #1a2d42;
+      transform-style: preserve-3d;
+      transition: transform 0.08s ease-out;
       border-radius: 6px;
-      box-shadow:
-        0 0 0 2px #263c54,
-        0 0 80px rgba(100,160,220,0.18),
-        inset 0 0 50px rgba(0,0,0,0.5);
-      z-index: 200;
-      pointer-events: none;
-    }
-
-    .room {
-      position: absolute;
-      inset: 0;
       overflow: hidden;
-      border-radius: 2px;
+      box-shadow:
+        0 0 0 14px #1a2d42,
+        0 0 0 16px #263c54,
+        0 30px 80px rgba(0,0,0,0.7),
+        0 0 60px rgba(100,160,220,0.15);
     }
 
-    /* Walls */
-    .wall-back {
+    /* ── LAYERS ── */
+    .layer {
       position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 61%;
-      background: linear-gradient(160deg, #c4d8ee 0%, #dce8f6 45%, #ccd8ea 100%);
+      inset: -30px; /* bleed so edges don't show on tilt */
+      background-size: cover;
+      background-position: center;
     }
 
-    .wall-back::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: repeating-linear-gradient(
-        90deg, transparent, transparent 59px, rgba(0,0,0,0.025) 60px
-      );
+    /* Base room image */
+    .layer-bg {
+      background-image: url('dorm.png');
+      transform: translateZ(0px);
     }
 
-    .wall-side-l {
-      position: absolute;
-      top: 0; left: 0;
-      width: 11%;
-      height: 61%;
-      background: linear-gradient(to right, #b0c8e0, #c4d8ee);
-    }
-
-    .wall-side-r {
-      position: absolute;
-      top: 0; right: 0;
-      width: 11%;
-      height: 61%;
-      background: linear-gradient(to left, #b0c8e0, #c4d8ee);
-    }
-
-    .floor {
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 39%;
-      background: linear-gradient(160deg, #c8aa82 0%, #b89b72 55%, #a08558 100%);
-    }
-
-    .floor::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: repeating-linear-gradient(
-        90deg, transparent, transparent 79px, rgba(0,0,0,0.05) 80px
-      );
-    }
-
-    .baseboard {
-      position: absolute;
-      bottom: 39%;
-      left: 0; right: 0;
-      height: 11px;
-      background: linear-gradient(to bottom, #a89060, #8a7248);
-      z-index: 5;
-    }
-
-    /* Lamp glow ambient */
-    .lamp-glow {
-      position: absolute;
-      top: 10%;
-      right: 12%;
-      width: 380px;
-      height: 380px;
-      background: radial-gradient(ellipse, rgba(245,220,120,0.28) 0%, rgba(245,215,100,0.08) 45%, transparent 70%);
-      pointer-events: none;
-      z-index: 15;
-    }
-
-    /* ── FAIRY LIGHTS ── */
-    .fairy-lights {
-      position: absolute;
-      top: 12px;
-      left: 3%;
-      right: 3%;
-      height: 32px;
-      z-index: 18;
+    /* Subtle dark vignette */
+    .layer-vignette {
+      background: radial-gradient(ellipse 90% 80% at 50% 50%, transparent 40%, rgba(8,19,30,0.55) 100%);
+      transform: translateZ(2px);
       pointer-events: none;
     }
 
-    .fl-bulb {
-      position: absolute;
-      width: 8px;
-      height: 10px;
-      border-radius: 50% 50% 40% 40%;
-      animation: flGlow var(--d, 2s) ease-in-out infinite alternate;
-      animation-delay: var(--dl, 0s);
+    /* Ambient warm glow over desk area */
+    .layer-glow {
+      background: radial-gradient(ellipse 350px 280px at 68% 52%, rgba(245,220,120,0.18) 0%, transparent 70%);
+      transform: translateZ(3px);
+      pointer-events: none;
     }
 
-    @keyframes flGlow {
-      from { opacity: 0.55; box-shadow: 0 0 4px currentColor; }
-      to   { opacity: 1;    box-shadow: 0 0 12px currentColor, 0 0 24px currentColor; }
+    /* Dust particles layer */
+    .layer-dust {
+      transform: translateZ(8px);
+      pointer-events: none;
     }
 
-    /* ── CLICKABLE HOTSPOT ── */
+    /* ── HOTSPOTS ── */
     .spot {
       position: absolute;
       cursor: pointer;
-      z-index: 40;
-      transition: filter 0.22s ease, transform 0.22s ease;
+      z-index: 50;
+      border-radius: 50%;
+      transform: translateZ(20px);
+      transition: transform 0.2s ease, opacity 0.2s ease;
     }
 
-    .spot:hover {
-      filter: brightness(1.18) drop-shadow(0 0 10px rgba(168,196,224,0.75));
-      transform: scale(1.04) translateY(-2px);
+    /* Invisible click area with visible pulse ring */
+    .spot-inner {
+      position: relative;
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
+    .spot-ring {
+      position: absolute;
+      inset: 0;
+      border: 2px solid rgba(168,196,224,0.7);
+      border-radius: 50%;
+      animation: ringPulse 2.5s ease-in-out infinite;
+    }
+
+    .spot-dot {
+      width: 10px;
+      height: 10px;
+      background: rgba(168,196,224,0.9);
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(168,196,224,0.8);
+    }
+
+    .spot:hover .spot-ring {
+      border-color: white;
+      animation: none;
+    }
+
+    .spot:hover .spot-dot {
+      background: white;
+      box-shadow: 0 0 14px white;
+    }
+
+    @keyframes ringPulse {
+      0%   { transform: scale(1);   opacity: 0.8; }
+      50%  { transform: scale(1.5); opacity: 0; }
+      100% { transform: scale(1);   opacity: 0.8; }
+    }
+
+    /* Tooltip */
     .spot::after {
       content: attr(data-tip);
       position: absolute;
-      bottom: calc(100% + 9px);
+      bottom: calc(100% + 10px);
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(27,58,107,0.95);
+      background: rgba(27,58,107,0.96);
       color: var(--ice);
       padding: 5px 13px;
       border-radius: 20px;
@@ -208,378 +183,31 @@
 
     .spot:hover::after { opacity: 1; }
 
-    /* ── WINDOW ── */
-    .win-wrap {
-      top: 32px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 200px;
-      height: 230px;
-    }
-
-    .win-glass {
-      width: 200px;
-      height: 230px;
-      border: 8px solid #8a7050;
-      border-radius: 3px;
-      background: linear-gradient(175deg, #08121e, #0e1e30 55%, #101820);
-      position: relative;
-      overflow: hidden;
-      box-shadow: inset 0 0 22px rgba(0,0,0,0.6), 2px 2px 10px rgba(0,0,0,0.35);
-    }
-
-    .win-rink-glow {
+    /* ── DUST PARTICLES ── */
+    .dust {
       position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 55px;
-      background: linear-gradient(to top, rgba(70,150,255,0.35), transparent);
-    }
-
-    .win-h { position: absolute; top: 50%; left: 0; right: 0; height: 8px; background: #8a7050; transform: translateY(-50%); }
-    .win-v { position: absolute; left: 50%; top: 0; bottom: 0; width: 8px; background: #8a7050; transform: translateX(-50%); }
-
-    .star {
-      position: absolute;
-      background: white;
+      width: 2px;
+      height: 2px;
+      background: rgba(255,255,220,0.6);
       border-radius: 50%;
-      animation: twinkle var(--d, 3s) ease-in-out infinite alternate;
+      animation: float var(--d, 8s) ease-in-out infinite;
       animation-delay: var(--dl, 0s);
     }
 
-    @keyframes twinkle {
-      from { opacity: 0.2; }
-      to   { opacity: 1; }
-    }
-
-    .curtain-l, .curtain-r {
-      position: absolute;
-      top: -8px;
-      width: 55px;
-      height: 250px;
-      background: linear-gradient(145deg, #1e3a5f, #162d4a);
-      z-index: 3;
-    }
-
-    .curtain-l { left: -30px; clip-path: polygon(0 0, 100% 0, 78% 100%, 0 100%); }
-    .curtain-r { right: -30px; clip-path: polygon(0 0, 100% 0, 100% 100%, 22% 100%); }
-
-    /* ── PINBOARD ── */
-    .pb-wrap {
-      top: 42px;
-      left: 105px;
-      width: 190px;
-      height: 145px;
-    }
-
-    .pb-bg {
-      width: 190px;
-      height: 145px;
-      background: #c4a882;
-      border: 5px solid var(--wood);
-      border-radius: 3px;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 2px 2px 10px rgba(0,0,0,0.28);
-    }
-
-    .pb-bg::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle 1px at 2px 2px, rgba(0,0,0,0.07) 1px, transparent 0);
-      background-size: 6px 6px;
-    }
-
-    .pb-paper {
-      position: absolute;
-      background: #fefce8;
-      border-radius: 1px;
-      box-shadow: 1px 1px 5px rgba(0,0,0,0.22);
-      padding: 6px 7px;
-      font-family: sans-serif;
-      font-size: 7px;
-      color: #333;
-      line-height: 1.6;
-    }
-
-    .pb-pin {
-      position: absolute;
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 35% 35%, #e74c3c, #922b21);
-      top: -4px; left: 50%;
-      transform: translateX(-50%);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.4);
-    }
-
-    /* ── BOOKSHELF ── */
-    .shelf-wrap {
-      bottom: 39%;
-      left: 55px;
-      width: 160px;
-      height: 185px;
-      z-index: 30;
-    }
-
-    .shelf-unit {
-      width: 160px;
-      height: 185px;
-      background: var(--wood);
-      border: 2px solid #6b4f2a;
-      border-radius: 3px;
-      position: relative;
-      box-shadow: 3px 3px 14px rgba(0,0,0,0.32);
-    }
-
-    .shelf-plank {
-      position: absolute;
-      left: 0; right: 0;
-      height: 10px;
-      background: #a07848;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.22);
-    }
-
-    .bk {
-      position: absolute;
-      border-radius: 1px 3px 3px 1px;
-      box-shadow: 1px 0 3px rgba(0,0,0,0.3);
-    }
-
-    /* ── DESK ── */
-    .desk-surface {
-      position: absolute;
-      bottom: 39%;
-      right: 50px;
-      width: 305px;
-      height: 14px;
-      background: linear-gradient(to bottom, #9a7450, #7a5830);
-      border-radius: 3px 3px 0 0;
-      box-shadow: 0 4px 22px rgba(0,0,0,0.38);
-      z-index: 28;
-    }
-
-    .desk-surface::before,
-    .desk-surface::after {
-      content: '';
-      position: absolute;
-      bottom: -68px;
-      width: 12px;
-      height: 68px;
-      background: #7a5830;
-      border-radius: 0 0 2px 2px;
-    }
-
-    .desk-surface::before { left: 10px; }
-    .desk-surface::after  { right: 10px; }
-
-    /* ── LAMP ── */
-    .lamp-wrap {
-      bottom: calc(39% + 14px);
-      right: 75px;
-      width: 58px;
-      height: 100px;
-      z-index: 42;
-    }
-
-    .lamp-shade {
-      width: 58px;
-      height: 36px;
-      background: linear-gradient(145deg, #ead878, #c4a030);
-      clip-path: polygon(12% 0%, 88% 0%, 100% 100%, 0% 100%);
-      box-shadow: 0 0 28px rgba(245,210,80,0.75), 0 0 55px rgba(245,210,80,0.28);
-    }
-
-    .lamp-pole {
-      width: 5px;
-      height: 50px;
-      background: linear-gradient(to right, #aaa, #888);
-      margin: 0 auto;
-    }
-
-    .lamp-base {
-      width: 22px;
-      height: 8px;
-      background: linear-gradient(to bottom, #bbb, #888);
-      margin: 0 auto;
-      border-radius: 3px;
-    }
-
-    /* ── NOTEBOOK ── */
-    .nb-wrap {
-      bottom: calc(39% + 14px);
-      right: 162px;
-      width: 66px;
-      height: 86px;
-      z-index: 42;
-    }
-
-    .nb-cover {
-      width: 66px;
-      height: 86px;
-      background: linear-gradient(145deg, #1e4080, #1b3a6b);
-      border-radius: 2px 6px 6px 2px;
-      border-left: 7px solid #0e1e3a;
-      box-shadow: 3px 3px 10px rgba(0,0,0,0.42);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .nb-label {
-      position: absolute;
-      top: 10px; left: 8px; right: 6px;
-      height: 13px;
-      background: rgba(255,255,255,0.18);
-      border-radius: 2px;
-    }
-
-    .nb-lines { position: absolute; top: 34px; left: 8px; right: 6px; }
-    .nb-lines div { height: 1px; background: rgba(255,255,255,0.14); margin-bottom: 7px; }
-
-    /* ── PHONE ── */
-    .phone-wrap {
-      bottom: calc(39% + 16px);
-      right: 248px;
-      width: 30px;
-      height: 58px;
-      z-index: 42;
-    }
-
-    .phone-body {
-      width: 30px;
-      height: 58px;
-      background: linear-gradient(145deg, #2a2a2a, #111);
-      border-radius: 7px;
-      border: 1px solid #444;
-      box-shadow: 2px 2px 8px rgba(0,0,0,0.45);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .phone-screen {
-      position: absolute;
-      inset: 3px;
-      background: linear-gradient(145deg, #1a3a5a, #0f2030);
-      border-radius: 5px;
-    }
-
-    .phone-notif {
-      position: absolute;
-      top: 8px; left: 7px; right: 7px;
-      height: 3px;
-      background: rgba(168,196,224,0.6);
-      border-radius: 2px;
-    }
-
-    /* ── GLASSES ── */
-    .glasses-wrap {
-      bottom: calc(39% + 18px);
-      right: 295px;
-      width: 58px;
-      height: 22px;
-      z-index: 42;
-    }
-
-    /* ── JERSEY (easter egg) ── */
-    .jersey-wrap {
-      bottom: calc(39% + 16px);
-      right: 368px;
-      width: 44px;
-      height: 56px;
-      z-index: 38;
-      opacity: 0.72;
-    }
-
-    .jersey-body {
-      width: 44px;
-      height: 56px;
-      background: linear-gradient(160deg, #c0392b, #8e1a10);
-      clip-path: polygon(24% 0%, 76% 0%, 92% 12%, 100% 12%, 100% 100%, 0% 100%, 0% 12%, 8% 12%);
-      box-shadow: 2px 2px 8px rgba(0,0,0,0.35);
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .jersey-num {
-      color: rgba(255,255,255,0.85);
-      font-family: sans-serif;
-      font-size: 17px;
-      font-weight: bold;
-      padding-top: 8px;
-    }
-
-    /* ── BED ── */
-    .bed-wrap {
-      bottom: 0;
-      left: 25px;
-      width: 148px;
-      height: 118px;
-      z-index: 35;
-    }
-
-    .bed-frame {
-      width: 148px;
-      height: 118px;
-      background: linear-gradient(to bottom, #8a6540, #7a5830);
-      border-radius: 4px;
-      position: relative;
-      box-shadow: 3px 3px 14px rgba(0,0,0,0.35);
-    }
-
-    .bed-mattress {
-      position: absolute;
-      top: 8px; left: 6px; right: 6px;
-      height: 68px;
-      background: linear-gradient(to bottom, #ece4d4, #dcd4c0);
-      border-radius: 3px;
-    }
-
-    .bed-pillow {
-      position: absolute;
-      top: 12px; left: 10px;
-      width: 52px; height: 40px;
-      background: linear-gradient(145deg, #f0f4f8, #dce8f0);
-      border-radius: 6px;
-      box-shadow: 1px 1px 4px rgba(0,0,0,0.15);
-    }
-
-    .bed-pillow2 {
-      position: absolute;
-      top: 12px; left: 70px;
-      width: 50px; height: 40px;
-      background: linear-gradient(145deg, #dde8f2, #c8daea);
-      border-radius: 6px;
-      box-shadow: 1px 1px 4px rgba(0,0,0,0.15);
-    }
-
-    .bed-blanket {
-      position: absolute;
-      bottom: 0; left: 6px; right: 6px;
-      height: 46px;
-      background: linear-gradient(160deg, #1e4080, #1a3668);
-      border-top: 3px solid #2a52a0;
-      border-radius: 0 0 2px 2px;
-    }
-
-    /* ── PLANT (decorative) ── */
-    .plant {
-      position: absolute;
-      bottom: calc(39% + 14px);
-      left: 248px;
-      width: 36px;
-      height: 58px;
-      z-index: 30;
-      pointer-events: none;
+    @keyframes float {
+      0%   { transform: translate(0, 0);        opacity: 0; }
+      10%  { opacity: 1; }
+      90%  { opacity: 0.6; }
+      100% { transform: translate(var(--tx, 20px), var(--ty, -60px)); opacity: 0; }
     }
 
     /* ── HINT ── */
     .hint {
       position: absolute;
-      bottom: 14px;
+      bottom: 16px;
       left: 50%;
-      transform: translateX(-50%);
-      color: rgba(168,196,224,0.4);
+      transform: translateX(-50%) translateZ(25px);
+      color: rgba(168,196,224,0.45);
       font-size: 10px;
       letter-spacing: 3px;
       text-transform: uppercase;
@@ -587,12 +215,12 @@
       pointer-events: none;
       white-space: nowrap;
       animation: breathe 4s ease infinite;
-      z-index: 50;
+      z-index: 60;
     }
 
     @keyframes breathe {
-      0%, 100% { opacity: 0.35; }
-      50%       { opacity: 0.8; }
+      0%, 100% { opacity: 0.3; }
+      50%       { opacity: 0.75; }
     }
 
     /* ── MODAL ── */
@@ -664,10 +292,8 @@
     }
 
     .modal-close:hover { color: white; }
-
     .modal-body { padding: 26px; }
 
-    /* Content styles */
     .tag {
       display: inline-block;
       background: var(--navy);
@@ -704,12 +330,7 @@
     .schedule .t { color: var(--navy); font-weight: bold; }
     .schedule .s { text-decoration: line-through; opacity: 0.4; }
 
-    .prose {
-      font-size: 14px;
-      line-height: 1.82;
-      color: #1a2a40;
-    }
-
+    .prose { font-size: 14px; line-height: 1.82; color: #1a2a40; }
     .prose .hl { color: var(--navy); font-weight: bold; }
 
     .sticky {
@@ -724,12 +345,7 @@
       margin-top: 14px;
     }
 
-    .imessages {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
+    .imessages { display: flex; flex-direction: column; gap: 12px; }
     .mw { display: flex; flex-direction: column; }
     .mw.r { align-items: flex-end; }
     .mw.l { align-items: flex-start; }
@@ -752,17 +368,8 @@
       font-family: sans-serif;
     }
 
-    .mb.recv {
-      background: #e5e5ea;
-      color: #1c1c1e;
-      border-bottom-left-radius: 5px;
-    }
-
-    .mb.sent {
-      background: var(--navy);
-      color: white;
-      border-bottom-right-radius: 5px;
-    }
+    .mb.recv { background: #e5e5ea; color: #1c1c1e; border-bottom-left-radius: 5px; }
+    .mb.sent { background: var(--navy); color: white; border-bottom-right-radius: 5px; }
 
     .egg {
       font-style: italic;
@@ -781,148 +388,71 @@
   <div class="subtitle">Summer's Room &mdash; Explore her world</div>
 </header>
 
-<div class="room-wrapper">
-  <div class="room-border"></div>
-  <div class="room">
+<div class="scene" id="scene">
+  <div class="card" id="card">
 
-    <!-- Walls & floor -->
-    <div class="wall-side-l"></div>
-    <div class="wall-side-r"></div>
-    <div class="wall-back"></div>
-    <div class="floor"></div>
-    <div class="baseboard"></div>
+    <!-- Layer 0: room image -->
+    <div class="layer layer-bg"></div>
 
-    <!-- Ambient lamp glow -->
-    <div class="lamp-glow"></div>
+    <!-- Layer 1: vignette depth -->
+    <div class="layer layer-vignette"></div>
 
-    <!-- Fairy lights (built by JS) -->
-    <div class="fairy-lights" id="fl"></div>
+    <!-- Layer 2: warm lamp glow -->
+    <div class="layer layer-glow"></div>
 
-    <!-- ── WINDOW ── -->
-    <div class="spot win-wrap" data-tip="The Window" onclick="open_('window')">
-      <div class="win-glass" id="winGlass">
-        <div class="win-rink-glow"></div>
-        <div class="win-h"></div>
-        <div class="win-v"></div>
-      </div>
-      <div class="curtain-l"></div>
-      <div class="curtain-r"></div>
+    <!-- Layer 3: floating dust -->
+    <div class="layer layer-dust" id="dust"></div>
+
+    <!-- ── HOTSPOTS ──
+         Positions are % of the scene (900×580).
+         Adjust left/top if they don't align with your image. -->
+
+    <!-- Window -->
+    <div class="spot" style="left:47%;top:8%" data-tip="The Window" onclick="open_('window')">
+      <div class="spot-inner"><div class="spot-ring"></div><div class="spot-dot"></div></div>
     </div>
 
-    <!-- ── PINBOARD ── -->
-    <div class="spot pb-wrap" data-tip="Her Pinboard" onclick="open_('pinboard')">
-      <div class="pb-bg">
-        <div class="pb-paper" style="top:11px;left:9px;width:74px;height:62px;transform:rotate(-2deg)">
-          <div class="pb-pin"></div>
-          <strong>GRAD APP</strong><br>Hartwell Sports<br>Psych Program<br>✓ GPA: 3.9<br>✓ Research hrs<br>☐ Letters
-        </div>
-        <div class="pb-paper" style="top:10px;left:92px;width:82px;height:55px;transform:rotate(1.5deg)">
-          <div class="pb-pin"></div>
-          <strong>THIS WEEK</strong><br>• Finish study<br>• Ace finals<br>• Do not get<br>&nbsp;&nbsp;distracted
-        </div>
-        <div class="pb-paper" style="top:80px;left:15px;width:155px;height:48px;transform:rotate(-0.8deg)">
-          <div class="pb-pin"></div>
-          Study: Athletes & Performance<br>Subject: #7 — Crawford, A.
-        </div>
-      </div>
+    <!-- Pinboard -->
+    <div class="spot" style="left:22%;top:12%" data-tip="Her Pinboard" onclick="open_('pinboard')">
+      <div class="spot-inner"><div class="spot-ring"></div><div class="spot-dot"></div></div>
     </div>
 
-    <!-- ── BOOKSHELF ── -->
-    <div class="spot shelf-wrap" data-tip="Her Bookshelf" onclick="open_('shelf')">
-      <div class="shelf-unit">
-        <div class="shelf-plank" style="top:0"></div>
-        <div class="shelf-plank" style="top:88px"></div>
-        <div class="shelf-plank" style="top:173px"></div>
-        <!-- Top shelf -->
-        <div class="bk" style="left:6px;bottom:100px;width:16px;height:70px;background:#c0392b"></div>
-        <div class="bk" style="left:24px;bottom:100px;width:13px;height:65px;background:#1b3a6b"></div>
-        <div class="bk" style="left:39px;bottom:100px;width:18px;height:72px;background:#27ae60"></div>
-        <div class="bk" style="left:59px;bottom:100px;width:14px;height:62px;background:#8e44ad"></div>
-        <div class="bk" style="left:75px;bottom:100px;width:17px;height:68px;background:#e67e22"></div>
-        <div class="bk" style="left:94px;bottom:100px;width:15px;height:74px;background:#2c3e50"></div>
-        <div class="bk" style="left:111px;bottom:100px;width:20px;height:66px;background:#16a085"></div>
-        <div class="bk" style="left:133px;bottom:100px;width:14px;height:71px;background:#c0392b;opacity:.65"></div>
-        <!-- Bottom shelf -->
-        <div class="bk" style="left:6px;bottom:12px;width:19px;height:66px;background:#2c3e50"></div>
-        <div class="bk" style="left:27px;bottom:12px;width:16px;height:70px;background:#8e44ad"></div>
-        <div class="bk" style="left:45px;bottom:12px;width:21px;height:62px;background:#1b3a6b"></div>
-        <div class="bk" style="left:68px;bottom:12px;width:14px;height:68px;background:#e74c3c"></div>
-        <div class="bk" style="left:84px;bottom:12px;width:18px;height:65px;background:#27ae60;opacity:.8"></div>
-        <div class="bk" style="left:104px;bottom:12px;width:15px;height:60px;background:#e67e22"></div>
-        <div class="bk" style="left:121px;bottom:12px;width:24px;height:73px;background:#c0392b"></div>
-      </div>
+    <!-- Bookshelf -->
+    <div class="spot" style="left:10%;top:42%" data-tip="Her Bookshelf" onclick="open_('shelf')">
+      <div class="spot-inner"><div class="spot-ring"></div><div class="spot-dot"></div></div>
     </div>
 
-    <!-- ── PLANT (decorative) ── -->
-    <div class="plant">
-      <svg width="36" height="58" viewBox="0 0 36 58" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <polygon points="12,44 24,44 22,58 14,58" fill="#a05828"/>
-        <rect x="17" y="20" width="3" height="24" fill="#2d7a2d"/>
-        <ellipse cx="10" cy="28" rx="10" ry="7" fill="#2d7a2d" transform="rotate(-30 10 28)"/>
-        <ellipse cx="26" cy="24" rx="10" ry="7" fill="#3a9a3a" transform="rotate(30 26 24)"/>
-        <ellipse cx="11" cy="18" rx="8" ry="5" fill="#248c24" transform="rotate(-20 11 18)"/>
-      </svg>
+    <!-- Lamp -->
+    <div class="spot" style="left:72%;top:32%" data-tip="Her Lamp" onclick="open_('lamp')">
+      <div class="spot-inner"><div class="spot-ring"></div><div class="spot-dot"></div></div>
     </div>
 
-    <!-- ── DESK SURFACE ── -->
-    <div class="desk-surface"></div>
-
-    <!-- ── JERSEY (easter egg) ── -->
-    <div class="spot jersey-wrap" data-tip="What's this...?" onclick="open_('jersey')">
-      <div class="jersey-body">
-        <div class="jersey-num">7</div>
-      </div>
+    <!-- Notebook / Planner -->
+    <div class="spot" style="left:58%;top:52%" data-tip="Her Planner" onclick="open_('notebook')">
+      <div class="spot-inner"><div class="spot-ring"></div><div class="spot-dot"></div></div>
     </div>
 
-    <!-- ── GLASSES ── -->
-    <div class="spot glasses-wrap" data-tip="Her Glasses" onclick="open_('glasses')">
-      <svg width="58" height="22" viewBox="0 0 58 22">
-        <rect x="1" y="3" width="22" height="16" rx="6" ry="9" fill="none" stroke="#1a1a3a" stroke-width="2.4"/>
-        <rect x="35" y="3" width="22" height="16" rx="6" ry="9" fill="none" stroke="#1a1a3a" stroke-width="2.4"/>
-        <line x1="23" y1="10" x2="35" y2="10" stroke="#1a1a3a" stroke-width="2"/>
-        <line x1="0" y1="7"  x2="1"  y2="7"  stroke="#1a1a3a" stroke-width="2" stroke-linecap="round"/>
-        <line x1="57" y1="7" x2="58" y2="7" stroke="#1a1a3a" stroke-width="2" stroke-linecap="round"/>
-      </svg>
+    <!-- Phone -->
+    <div class="spot" style="left:66%;top:54%" data-tip="Her Phone" onclick="open_('phone')">
+      <div class="spot-inner"><div class="spot-ring"></div><div class="spot-dot"></div></div>
     </div>
 
-    <!-- ── PHONE ── -->
-    <div class="spot phone-wrap" data-tip="Her Phone" onclick="open_('phone')">
-      <div class="phone-body">
-        <div class="phone-screen">
-          <div class="phone-notif"></div>
-        </div>
-      </div>
+    <!-- Glasses -->
+    <div class="spot" style="left:75%;top:55%" data-tip="Her Glasses" onclick="open_('glasses')">
+      <div class="spot-inner"><div class="spot-ring"></div><div class="spot-dot"></div></div>
     </div>
 
-    <!-- ── NOTEBOOK ── -->
-    <div class="spot nb-wrap" data-tip="Her Planner" onclick="open_('notebook')">
-      <div class="nb-cover">
-        <div class="nb-label"></div>
-        <div class="nb-lines">
-          <div></div><div></div><div></div><div></div><div></div>
-        </div>
-      </div>
+    <!-- Bed -->
+    <div class="spot" style="left:20%;top:62%" data-tip="Her Bed" onclick="open_('bed')">
+      <div class="spot-inner"><div class="spot-ring"></div><div class="spot-dot"></div></div>
     </div>
 
-    <!-- ── LAMP ── -->
-    <div class="spot lamp-wrap" data-tip="Her Lamp" onclick="open_('lamp')">
-      <div class="lamp-shade"></div>
-      <div class="lamp-pole"></div>
-      <div class="lamp-base"></div>
+    <!-- Jersey (easter egg — tucked away) -->
+    <div class="spot" style="left:88%;top:60%" data-tip="What's this...?" onclick="open_('jersey')">
+      <div class="spot-inner"><div class="spot-ring"></div><div class="spot-dot"></div></div>
     </div>
 
-    <!-- ── BED ── -->
-    <div class="spot bed-wrap" data-tip="Her Bed" onclick="open_('bed')">
-      <div class="bed-frame">
-        <div class="bed-mattress"></div>
-        <div class="bed-pillow"></div>
-        <div class="bed-pillow2"></div>
-        <div class="bed-blanket"></div>
-      </div>
-    </div>
-
-    <!-- Hint -->
-    <div class="hint">click anything to explore</div>
+    <div class="hint">move your mouse &mdash; click the circles to explore</div>
   </div>
 </div>
 
@@ -974,7 +504,7 @@ const reveals = {
       <div class="prose">
         <p>The psychology spines are worn flat, dog-eared, annotated in her neat, unforgiving hand.</p>
         <br>
-        <p><span class="hl">Sport Psychology: Theory &amp; Practice</span> — flagged on page 214: <em style="font-style:italic">"The athlete's greatest opponent lives between their ears."</em></p>
+        <p><span class="hl">Sport Psychology: Theory &amp; Practice</span> — flagged on page 214: <em>"The athlete's greatest opponent lives between their ears."</em></p>
         <br>
         <p>Wedged between two textbooks: a battered copy of <em>Pride and Prejudice</em>. No annotations. Just fingerprints on page one and page three hundred and twelve.</p>
         <br>
@@ -1083,64 +613,50 @@ function open_(key) {
   document.getElementById('overlay').classList.add('open');
 }
 
-function close_() {
-  document.getElementById('overlay').classList.remove('open');
-}
-
-function closeOut(e) {
-  if (e.target === document.getElementById('overlay')) close_();
-}
-
+function close_() { document.getElementById('overlay').classList.remove('open'); }
+function closeOut(e) { if (e.target === document.getElementById('overlay')) close_(); }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') close_(); });
 
-// ── FAIRY LIGHTS ──
-const fl    = document.getElementById('fl');
-const colors = ['#f5d020','#a8e6cf','#ff8b94','#a8c4e0','#ffd3a5','#c3b1e1','#f8c8d4'];
-const count  = 20;
+// ── 3D MOUSE PARALLAX ──
+const scene = document.getElementById('scene');
+const card  = document.getElementById('card');
+const MAX_TILT = 12; // degrees
 
-const svgNS = 'http://www.w3.org/2000/svg';
-const svg   = document.createElementNS(svgNS, 'svg');
-svg.setAttribute('width', '100%');
-svg.setAttribute('height', '32');
-svg.style.cssText = 'position:absolute;top:0;left:0;pointer-events:none';
-
-const pathEl = document.createElementNS(svgNS, 'path');
-let d = 'M 0 6';
-for (let i = 1; i <= count; i++) {
-  const x = (820 / count) * i;
-  const y = i % 2 === 0 ? 4 : 13;
-  d += ` L ${x} ${y}`;
-}
-pathEl.setAttribute('d', d);
-pathEl.setAttribute('stroke', 'rgba(180,180,180,0.38)');
-pathEl.setAttribute('stroke-width', '1');
-pathEl.setAttribute('fill', 'none');
-svg.appendChild(pathEl);
-fl.appendChild(svg);
-
-for (let i = 0; i < count; i++) {
-  const b = document.createElement('div');
-  b.className = 'fl-bulb';
-  const x   = (100 / count) * i + (100 / count / 2);
-  const y   = i % 2 === 0 ? 1 : 10;
-  const col = colors[i % colors.length];
-  b.style.cssText = `left:${x}%;top:${y}px;background:${col};color:${col};--d:${1.4 + Math.random() * 2.2}s;--dl:${(Math.random() * 2).toFixed(2)}s`;
-  fl.appendChild(b);
-}
-
-// ── STARS ──
-const win = document.getElementById('winGlass');
-const starData = [
-  [14,12,2],[42,22,1],[72,8,2],[86,28,1],[22,44,1],[62,48,2],
-  [9,58,1],[52,18,1],[80,52,2],[36,33,1],[66,24,2],[91,14,1],
-  [20,68,1],[48,38,1],[78,38,2],[30,14,1],[58,62,1],[44,52,2]
-];
-starData.forEach(([l, t, sz]) => {
-  const s = document.createElement('div');
-  s.className = 'star';
-  s.style.cssText = `left:${l}%;top:${t}%;width:${sz}px;height:${sz}px;--d:${2 + Math.random() * 3}s;--dl:${(Math.random() * 3).toFixed(2)}s`;
-  win.appendChild(s);
+scene.addEventListener('mousemove', e => {
+  const r   = scene.getBoundingClientRect();
+  const x   = (e.clientX - r.left)  / r.width  - 0.5; // -0.5 to 0.5
+  const y   = (e.clientY - r.top)   / r.height - 0.5;
+  const rX  =  y * MAX_TILT * -1;
+  const rY  =  x * MAX_TILT;
+  card.style.transform = `rotateX(${rX}deg) rotateY(${rY}deg)`;
 });
+
+scene.addEventListener('mouseleave', () => {
+  card.style.transition = 'transform 0.6s ease-out';
+  card.style.transform  = 'rotateX(0deg) rotateY(0deg)';
+  setTimeout(() => { card.style.transition = 'transform 0.08s ease-out'; }, 650);
+});
+
+// ── FLOATING DUST PARTICLES ──
+const dustLayer = document.getElementById('dust');
+for (let i = 0; i < 22; i++) {
+  const d = document.createElement('div');
+  d.className = 'dust';
+  const tx = (Math.random() - 0.5) * 60;
+  const ty = -(30 + Math.random() * 80);
+  d.style.cssText = `
+    left:${20 + Math.random() * 60}%;
+    top:${30 + Math.random() * 50}%;
+    --d:${6 + Math.random() * 8}s;
+    --dl:${(Math.random() * 6).toFixed(1)}s;
+    --tx:${tx.toFixed(0)}px;
+    --ty:${ty.toFixed(0)}px;
+    opacity:${0.3 + Math.random() * 0.5};
+    width:${Math.random() < 0.3 ? 3 : 2}px;
+    height:${Math.random() < 0.3 ? 3 : 2}px;
+  `;
+  dustLayer.appendChild(d);
+}
 </script>
 </body>
 </html>
