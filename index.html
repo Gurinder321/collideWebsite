@@ -5,658 +5,484 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Collide — Summer's Room</title>
   <style>
-    :root {
-      --navy: #1b3a6b;
-      --ice: #a8c4e0;
-      --cream: #faf7f2;
-      --text: #1a1a2e;
-      --red: #c0392b;
-    }
+    :root { --navy:#1b3a6b; --ice:#a8c4e0; --cream:#faf7f2; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:#0a1628; overflow:hidden; font-family:Georgia,serif; cursor:grab; }
+    body.drag { cursor:grabbing; }
+    #c { display:block; }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    /* ── HEADER ── */
+    .hdr { position:fixed; top:22px; left:50%; transform:translateX(-50%); text-align:center; z-index:90; pointer-events:none; }
+    .hdr-t { font-size:22px; font-style:italic; letter-spacing:8px; color:var(--ice); text-transform:uppercase; text-shadow:0 0 20px rgba(168,196,224,.4); }
+    .hdr-s { font-size:10px; letter-spacing:4px; color:rgba(168,196,224,.35); text-transform:uppercase; margin-top:4px; font-family:sans-serif; }
 
-    body {
-      background: #08131e;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-family: Georgia, serif;
-      overflow: hidden;
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 18px;
-      position: relative;
-      z-index: 10;
-    }
-
-    .title {
-      font-size: 28px;
-      font-style: italic;
-      letter-spacing: 8px;
-      color: var(--ice);
-      text-transform: uppercase;
-    }
-
-    .subtitle {
-      font-size: 11px;
-      letter-spacing: 4px;
-      color: rgba(168,196,224,0.4);
-      text-transform: uppercase;
-      margin-top: 5px;
-      font-family: sans-serif;
-    }
-
-    /* ── 3D SCENE WRAPPER ── */
-    .scene {
-      position: relative;
-      width: 900px;
-      height: 580px;
-      perspective: 900px;
-      cursor: crosshair;
-    }
-
-    /* The card that rotates in 3D */
-    .card {
-      position: absolute;
-      inset: 0;
-      transform-style: preserve-3d;
-      transition: transform 0.08s ease-out;
-      border-radius: 6px;
-      overflow: hidden;
-      box-shadow:
-        0 0 0 14px #1a2d42,
-        0 0 0 16px #263c54,
-        0 30px 80px rgba(0,0,0,0.7),
-        0 0 60px rgba(100,160,220,0.15);
-    }
-
-    /* ── LAYERS ── */
-    .layer {
-      position: absolute;
-      inset: -30px; /* bleed so edges don't show on tilt */
-      background-size: cover;
-      background-position: center;
-    }
-
-    /* Base room image */
-    .layer-bg {
-      background-image: url('dorm.png');
-      transform: translateZ(0px);
-    }
-
-    /* Subtle dark vignette */
-    .layer-vignette {
-      background: radial-gradient(ellipse 90% 80% at 50% 50%, transparent 40%, rgba(8,19,30,0.55) 100%);
-      transform: translateZ(2px);
-      pointer-events: none;
-    }
-
-    /* Ambient warm glow over desk area */
-    .layer-glow {
-      background: radial-gradient(ellipse 350px 280px at 68% 52%, rgba(245,220,120,0.18) 0%, transparent 70%);
-      transform: translateZ(3px);
-      pointer-events: none;
-    }
-
-    /* Dust particles layer */
-    .layer-dust {
-      transform: translateZ(8px);
-      pointer-events: none;
-    }
+    /* ── LOADING ── */
+    #load { position:fixed; inset:0; background:#0a1628; z-index:500; display:flex; flex-direction:column; align-items:center; justify-content:center; transition:opacity .8s; }
+    #load.hide { opacity:0; pointer-events:none; }
+    .lt { font-size:26px; font-style:italic; letter-spacing:8px; color:var(--ice); text-transform:uppercase; margin-bottom:18px; }
+    .lb { width:180px; height:2px; background:rgba(168,196,224,.15); border-radius:2px; overflow:hidden; }
+    .lbi { height:100%; background:var(--ice); border-radius:2px; animation:lb 1.2s ease-in-out infinite alternate; }
+    @keyframes lb { from{width:15%} to{width:85%} }
+    .ls { margin-top:12px; font-size:10px; letter-spacing:4px; color:rgba(168,196,224,.38); text-transform:uppercase; font-family:sans-serif; animation:br 2s ease infinite; }
+    @keyframes br { 0%,100%{opacity:.3} 50%{opacity:.8} }
 
     /* ── HOTSPOTS ── */
-    .spot {
-      position: absolute;
-      cursor: pointer;
-      z-index: 50;
-      border-radius: 50%;
-      transform: translateZ(20px);
-      transition: transform 0.2s ease, opacity 0.2s ease;
-    }
-
-    /* Invisible click area with visible pulse ring */
-    .spot-inner {
-      position: relative;
-      width: 38px;
-      height: 38px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .spot-ring {
-      position: absolute;
-      inset: 0;
-      border: 2px solid rgba(168,196,224,0.7);
-      border-radius: 50%;
-      animation: ringPulse 2.5s ease-in-out infinite;
-    }
-
-    .spot-dot {
-      width: 10px;
-      height: 10px;
-      background: rgba(168,196,224,0.9);
-      border-radius: 50%;
-      box-shadow: 0 0 8px rgba(168,196,224,0.8);
-    }
-
-    .spot:hover .spot-ring {
-      border-color: white;
-      animation: none;
-    }
-
-    .spot:hover .spot-dot {
-      background: white;
-      box-shadow: 0 0 14px white;
-    }
-
-    @keyframes ringPulse {
-      0%   { transform: scale(1);   opacity: 0.8; }
-      50%  { transform: scale(1.5); opacity: 0; }
-      100% { transform: scale(1);   opacity: 0.8; }
-    }
-
-    /* Tooltip */
-    .spot::after {
-      content: attr(data-tip);
-      position: absolute;
-      bottom: calc(100% + 10px);
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(27,58,107,0.96);
-      color: var(--ice);
-      padding: 5px 13px;
-      border-radius: 20px;
-      font-size: 10px;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      white-space: nowrap;
-      opacity: 0;
-      transition: opacity 0.2s;
-      pointer-events: none;
-      font-family: sans-serif;
-    }
-
-    .spot:hover::after { opacity: 1; }
-
-    /* ── DUST PARTICLES ── */
-    .dust {
-      position: absolute;
-      width: 2px;
-      height: 2px;
-      background: rgba(255,255,220,0.6);
-      border-radius: 50%;
-      animation: float var(--d, 8s) ease-in-out infinite;
-      animation-delay: var(--dl, 0s);
-    }
-
-    @keyframes float {
-      0%   { transform: translate(0, 0);        opacity: 0; }
-      10%  { opacity: 1; }
-      90%  { opacity: 0.6; }
-      100% { transform: translate(var(--tx, 20px), var(--ty, -60px)); opacity: 0; }
-    }
+    #hsl { position:fixed; inset:0; pointer-events:none; z-index:60; }
+    .hs { position:absolute; pointer-events:all; cursor:pointer; transform:translate(-50%,-50%); transition:opacity .25s; }
+    .hsi { width:36px; height:36px; position:relative; display:flex; align-items:center; justify-content:center; }
+    .hsr { position:absolute; inset:0; border:2px solid rgba(168,196,224,.7); border-radius:50%; animation:rp 2.4s ease-in-out infinite; }
+    .hsd { width:9px; height:9px; background:rgba(168,196,224,.9); border-radius:50%; box-shadow:0 0 8px rgba(168,196,224,.9); position:relative; z-index:2; }
+    .hs:hover .hsr { animation:none; border-color:#fff; transform:scale(1.2); }
+    .hs:hover .hsd { background:#fff; box-shadow:0 0 16px #fff; }
+    @keyframes rp { 0%{transform:scale(1);opacity:.85} 60%{transform:scale(1.7);opacity:0} 100%{transform:scale(1);opacity:.85} }
+    .hs::after { content:attr(data-tip); position:absolute; bottom:calc(100% + 10px); left:50%; transform:translateX(-50%); background:rgba(27,58,107,.96); color:var(--ice); padding:5px 13px; border-radius:20px; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; white-space:nowrap; opacity:0; transition:opacity .2s; pointer-events:none; font-family:sans-serif; }
+    .hs:hover::after { opacity:1; }
 
     /* ── HINT ── */
-    .hint {
-      position: absolute;
-      bottom: 16px;
-      left: 50%;
-      transform: translateX(-50%) translateZ(25px);
-      color: rgba(168,196,224,0.45);
-      font-size: 10px;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      font-family: sans-serif;
-      pointer-events: none;
-      white-space: nowrap;
-      animation: breathe 4s ease infinite;
-      z-index: 60;
-    }
-
-    @keyframes breathe {
-      0%, 100% { opacity: 0.3; }
-      50%       { opacity: 0.75; }
-    }
+    .hint { position:fixed; bottom:18px; left:50%; transform:translateX(-50%); color:rgba(168,196,224,.35); font-size:10px; letter-spacing:3px; text-transform:uppercase; font-family:sans-serif; pointer-events:none; white-space:nowrap; animation:br 4s ease infinite; z-index:80; }
 
     /* ── MODAL ── */
-    .overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(8,19,30,0.88);
-      z-index: 600;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.28s ease;
-    }
-
-    .overlay.open {
-      opacity: 1;
-      pointer-events: all;
-    }
-
-    .modal {
-      background: var(--cream);
-      width: 440px;
-      max-width: 92vw;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 28px 80px rgba(0,0,0,0.65);
-      transform: translateY(28px) scale(0.94);
-      transition: transform 0.34s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-
-    .overlay.open .modal {
-      transform: translateY(0) scale(1);
-    }
-
-    .modal-head {
-      background: var(--navy);
-      padding: 18px 22px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .modal-head-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .modal-icon { font-size: 20px; }
-
-    .modal-title {
-      font-size: 11px;
-      letter-spacing: 2.5px;
-      text-transform: uppercase;
-      color: var(--ice);
-      font-family: sans-serif;
-    }
-
-    .modal-close {
-      background: none;
-      border: none;
-      color: rgba(168,196,224,0.55);
-      font-size: 24px;
-      cursor: pointer;
-      transition: color 0.2s;
-      line-height: 1;
-    }
-
-    .modal-close:hover { color: white; }
-    .modal-body { padding: 26px; }
-
-    .tag {
-      display: inline-block;
-      background: var(--navy);
-      color: var(--ice);
-      font-size: 10px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      padding: 3px 11px;
-      border-radius: 20px;
-      margin-bottom: 16px;
-      font-family: sans-serif;
-    }
-
-    .quote {
-      font-style: italic;
-      font-size: 17px;
-      line-height: 1.78;
-      color: #1a2a40;
-      border-left: 3px solid var(--ice);
-      padding-left: 18px;
-    }
-
-    .schedule {
-      font-family: 'Courier New', monospace;
-      font-size: 13px;
-      line-height: 2.1;
-      background: #f0f4f8;
-      padding: 18px 20px;
-      border-radius: 6px;
-      border-left: 3px solid var(--navy);
-      color: var(--text);
-    }
-
-    .schedule .t { color: var(--navy); font-weight: bold; }
-    .schedule .s { text-decoration: line-through; opacity: 0.4; }
-
-    .prose { font-size: 14px; line-height: 1.82; color: #1a2a40; }
-    .prose .hl { color: var(--navy); font-weight: bold; }
-
-    .sticky {
-      background: #fefce8;
-      padding: 16px;
-      border-radius: 5px;
-      font-family: 'Courier New', monospace;
-      font-size: 12.5px;
-      line-height: 1.7;
-      transform: rotate(-1.2deg);
-      box-shadow: 2px 2px 8px rgba(0,0,0,0.12);
-      margin-top: 14px;
-    }
-
-    .imessages { display: flex; flex-direction: column; gap: 12px; }
-    .mw { display: flex; flex-direction: column; }
-    .mw.r { align-items: flex-end; }
-    .mw.l { align-items: flex-start; }
-
-    .mn {
-      font-size: 10px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: rgba(0,0,0,0.38);
-      margin-bottom: 3px;
-      font-family: sans-serif;
-    }
-
-    .mb {
-      max-width: 78%;
-      padding: 10px 15px;
-      border-radius: 18px;
-      font-size: 14px;
-      line-height: 1.45;
-      font-family: sans-serif;
-    }
-
-    .mb.recv { background: #e5e5ea; color: #1c1c1e; border-bottom-left-radius: 5px; }
-    .mb.sent { background: var(--navy); color: white; border-bottom-right-radius: 5px; }
-
-    .egg {
-      font-style: italic;
-      font-size: 15px;
-      line-height: 1.82;
-      color: var(--red);
-      text-align: center;
-      padding: 6px 0;
-    }
+    .ov { position:fixed; inset:0; background:rgba(10,22,40,.88); z-index:700; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity .28s; }
+    .ov.open { opacity:1; pointer-events:all; }
+    .mo { background:var(--cream); width:440px; max-width:92vw; border-radius:10px; overflow:hidden; box-shadow:0 28px 80px rgba(0,0,0,.65); transform:translateY(28px) scale(.94); transition:transform .34s cubic-bezier(.34,1.56,.64,1); }
+    .ov.open .mo { transform:translateY(0) scale(1); }
+    .moh { background:var(--navy); padding:18px 22px; display:flex; align-items:center; justify-content:space-between; }
+    .mohl { display:flex; align-items:center; gap:10px; }
+    .moi { font-size:20px; }
+    .mot { font-size:11px; letter-spacing:2.5px; text-transform:uppercase; color:var(--ice); font-family:sans-serif; }
+    .mox { background:none; border:none; color:rgba(168,196,224,.5); font-size:24px; cursor:pointer; transition:color .2s; line-height:1; }
+    .mox:hover { color:#fff; }
+    .mob { padding:26px; }
+    .tag { display:inline-block; background:var(--navy); color:var(--ice); font-size:10px; letter-spacing:2px; text-transform:uppercase; padding:3px 11px; border-radius:20px; margin-bottom:16px; font-family:sans-serif; }
+    .qt { font-style:italic; font-size:17px; line-height:1.78; color:#1a2a40; border-left:3px solid var(--ice); padding-left:18px; }
+    .sch { font-family:'Courier New',monospace; font-size:13px; line-height:2.1; background:#f0f4f8; padding:18px 20px; border-radius:6px; border-left:3px solid var(--navy); color:#1a1a2e; }
+    .sch .t { color:var(--navy); font-weight:bold; }
+    .sch .s { text-decoration:line-through; opacity:.4; }
+    .pr { font-size:14px; line-height:1.82; color:#1a2a40; }
+    .pr .hl { color:var(--navy); font-weight:bold; }
+    .stk { background:#fefce8; padding:16px; border-radius:5px; font-family:'Courier New',monospace; font-size:12.5px; line-height:1.7; transform:rotate(-1.2deg); box-shadow:2px 2px 8px rgba(0,0,0,.12); margin-top:14px; }
+    .ims { display:flex; flex-direction:column; gap:12px; }
+    .mw { display:flex; flex-direction:column; }
+    .mw.r { align-items:flex-end; } .mw.l { align-items:flex-start; }
+    .mn { font-size:10px; letter-spacing:1px; text-transform:uppercase; color:rgba(0,0,0,.38); margin-bottom:3px; font-family:sans-serif; }
+    .mb { max-width:78%; padding:10px 15px; border-radius:18px; font-size:14px; line-height:1.45; font-family:sans-serif; }
+    .mb.rc { background:#e5e5ea; color:#1c1c1e; border-bottom-left-radius:5px; }
+    .mb.sn { background:var(--navy); color:#fff; border-bottom-right-radius:5px; }
+    .eg { font-style:italic; font-size:15px; line-height:1.82; color:#c0392b; text-align:center; padding:6px 0; }
   </style>
 </head>
 <body>
+<canvas id="c"></canvas>
+<div class="hdr"><div class="hdr-t">Collide</div><div class="hdr-s">Summer's Room</div></div>
+<div id="load"><div class="lt">Collide</div><div class="lb"><div class="lbi"></div></div><div class="ls">entering her room&hellip;</div></div>
+<div id="hsl"></div>
+<div class="hint">drag to look around &nbsp;&mdash;&nbsp; click the circles</div>
 
-<header>
-  <div class="title">Collide</div>
-  <div class="subtitle">Summer's Room &mdash; Explore her world</div>
-</header>
-
-<div class="scene" id="scene">
-  <div class="card" id="card">
-
-    <!-- Layer 0: room image -->
-    <div class="layer layer-bg"></div>
-
-    <!-- Layer 1: vignette depth -->
-    <div class="layer layer-vignette"></div>
-
-    <!-- Layer 2: warm lamp glow -->
-    <div class="layer layer-glow"></div>
-
-    <!-- Layer 3: floating dust -->
-    <div class="layer layer-dust" id="dust"></div>
-
-    <!-- ── HOTSPOTS ──
-         Positions are % of the scene (900×580).
-         Adjust left/top if they don't align with your image. -->
-
-    <!-- Window -->
-    <div class="spot" style="left:47%;top:8%" data-tip="The Window" onclick="open_('window')">
-      <div class="spot-inner"><div class="spot-ring"></div><div class="spot-dot"></div></div>
-    </div>
-
-    <!-- Pinboard -->
-    <div class="spot" style="left:22%;top:12%" data-tip="Her Pinboard" onclick="open_('pinboard')">
-      <div class="spot-inner"><div class="spot-ring"></div><div class="spot-dot"></div></div>
-    </div>
-
-    <!-- Bookshelf -->
-    <div class="spot" style="left:10%;top:42%" data-tip="Her Bookshelf" onclick="open_('shelf')">
-      <div class="spot-inner"><div class="spot-ring"></div><div class="spot-dot"></div></div>
-    </div>
-
-    <!-- Lamp -->
-    <div class="spot" style="left:72%;top:32%" data-tip="Her Lamp" onclick="open_('lamp')">
-      <div class="spot-inner"><div class="spot-ring"></div><div class="spot-dot"></div></div>
-    </div>
-
-    <!-- Notebook / Planner -->
-    <div class="spot" style="left:58%;top:52%" data-tip="Her Planner" onclick="open_('notebook')">
-      <div class="spot-inner"><div class="spot-ring"></div><div class="spot-dot"></div></div>
-    </div>
-
-    <!-- Phone -->
-    <div class="spot" style="left:66%;top:54%" data-tip="Her Phone" onclick="open_('phone')">
-      <div class="spot-inner"><div class="spot-ring"></div><div class="spot-dot"></div></div>
-    </div>
-
-    <!-- Glasses -->
-    <div class="spot" style="left:75%;top:55%" data-tip="Her Glasses" onclick="open_('glasses')">
-      <div class="spot-inner"><div class="spot-ring"></div><div class="spot-dot"></div></div>
-    </div>
-
-    <!-- Bed -->
-    <div class="spot" style="left:20%;top:62%" data-tip="Her Bed" onclick="open_('bed')">
-      <div class="spot-inner"><div class="spot-ring"></div><div class="spot-dot"></div></div>
-    </div>
-
-    <!-- Jersey (easter egg — tucked away) -->
-    <div class="spot" style="left:88%;top:60%" data-tip="What's this...?" onclick="open_('jersey')">
-      <div class="spot-inner"><div class="spot-ring"></div><div class="spot-dot"></div></div>
-    </div>
-
-    <div class="hint">move your mouse &mdash; click the circles to explore</div>
+<div class="ov" id="ov" onclick="co(event)">
+  <div class="mo">
+    <div class="moh"><div class="mohl"><span class="moi" id="mi"></span><span class="mot" id="mt"></span></div><button class="mox" onclick="cm()">×</button></div>
+    <div class="mob" id="mb"></div>
   </div>
 </div>
 
-<!-- ── MODAL ── -->
-<div class="overlay" id="overlay" onclick="closeOut(event)">
-  <div class="modal">
-    <div class="modal-head">
-      <div class="modal-head-left">
-        <span class="modal-icon" id="mIcon"></span>
-        <span class="modal-title" id="mTitle"></span>
-      </div>
-      <button class="modal-close" onclick="close_()">×</button>
-    </div>
-    <div class="modal-body" id="mBody"></div>
-  </div>
-</div>
+<script type="importmap">
+{ "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer }     from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass }         from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass }    from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { ShaderPass }         from 'three/addons/postprocessing/ShaderPass.js';
+import { GammaCorrectionShader } from 'three/addons/shaders/GammaCorrectionShader.js';
 
-<script>
-// ── MODAL CONTENT ──
+// ── MODAL ──
 const reveals = {
-  window: {
-    icon: '🌙', title: 'The Window',
-    html: `
-      <div class="tag">Night View</div>
-      <div class="quote">
-        "She could see the rink from here — the distant blue-white glow cutting through the dark. Two years she had spent learning to look past it.<br><br>
-        Tonight, for the first time, she didn't look away."
-      </div>`
-  },
-  pinboard: {
-    icon: '📌', title: 'Her Pinboard',
-    html: `
-      <div class="tag">Summer's Goals</div>
-      <div class="prose">
-        <p>Behind the grad school draft, pinned crooked — the only crooked thing in the room — is a sticky note in blue ballpoint:</p>
-      </div>
-      <div class="sticky">
-        <strong>Things that will NOT derail me:</strong><br>
-        — bad weather<br>
-        — group projects<br>
-        — unreliable lab subjects<br>
-        — <span style="text-decoration:line-through;opacity:0.45">hockey players</span>
-      </div>`
-  },
-  shelf: {
-    icon: '📚', title: 'Her Bookshelf',
-    html: `
-      <div class="tag">Reading List</div>
-      <div class="prose">
-        <p>The psychology spines are worn flat, dog-eared, annotated in her neat, unforgiving hand.</p>
-        <br>
-        <p><span class="hl">Sport Psychology: Theory &amp; Practice</span> — flagged on page 214: <em>"The athlete's greatest opponent lives between their ears."</em></p>
-        <br>
-        <p>Wedged between two textbooks: a battered copy of <em>Pride and Prejudice</em>. No annotations. Just fingerprints on page one and page three hundred and twelve.</p>
-        <br>
-        <p style="opacity:0.55;font-size:13px;font-style:italic">She'd deny it if you asked.</p>
-      </div>`
-  },
-  bed: {
-    icon: '🌙', title: 'Her Bed',
-    html: `
-      <div class="tag">10:52 PM</div>
-      <div class="quote">
-        "She had a plan for the year. A tight, precise, color-coded plan.<br><br>
-        It did not include lying awake at eleven thinking about the way he looked at her across the ice — not at her research clipboard, not past her.<br><br>
-        At her."
-      </div>`
-  },
-  jersey: {
-    icon: '🏒', title: '...Wait.',
-    html: `
-      <div class="tag">Easter Egg</div>
-      <div class="egg">
-        A red jersey. Number 7.<br>
-        Folded. <em>Of course</em> it's folded.<br><br>
-        <em>"It was just easier than giving it back.<br>That's all."</em><br><br>
-        <span style="font-size:12px;opacity:0.55;font-style:normal">She had said that to herself four times this week.</span>
-      </div>`
-  },
-  glasses: {
-    icon: '👓', title: 'Her Glasses',
-    html: `
-      <div class="tag">Character Note</div>
-      <div class="quote">
-        "She saw everything clearly.<br><br>
-        Data. Patterns. The way people gave themselves away under observation.<br><br>
-        Aiden Crawford, she had decided on day one, was an open book.<br><br>
-        She was wrong about that."
-      </div>`
-  },
-  phone: {
-    icon: '📱', title: 'Her Phone',
-    html: `
-      <div class="tag">New Message</div>
-      <div class="imessages">
-        <div class="mw r">
-          <div class="mn">Summer</div>
-          <div class="mb sent">I need you to complete the behavioral questionnaire by Thursday. All 47 questions.</div>
-        </div>
-        <div class="mw l">
-          <div class="mn">Crawford #7</div>
-          <div class="mb recv">47?? is this a study or a trial</div>
-        </div>
-        <div class="mw r">
-          <div class="mn">Summer</div>
-          <div class="mb sent">It's for science. Thursday.</div>
-        </div>
-        <div class="mw l">
-          <div class="mn">Crawford #7</div>
-          <div class="mb recv">what if I have questions for you</div>
-        </div>
-        <div class="mw r">
-          <div class="mn">Summer</div>
-          <div class="mb sent">You don't.</div>
-        </div>
-        <div class="mw l">
-          <div class="mn">Crawford #7</div>
-          <div class="mb recv">favorite color</div>
-        </div>
-        <div class="mw r">
-          <div class="mn">Summer</div>
-          <div class="mb sent">Thursday, Crawford.</div>
-        </div>
-      </div>`
-  },
-  notebook: {
-    icon: '📓', title: 'Her Planner',
-    html: `
-      <div class="tag">This Week</div>
-      <div class="schedule">
-        <span class="t">MON</span> — Lecture, research session, library 6–9<br>
-        <span class="t">TUE</span> — Office hours, <span class="s">avoid the rink</span> study group<br>
-        <span class="t">WED</span> — Subject observation (rink, 7 PM) ⚠<br>
-        <span class="t">THU</span> — Questionnaire due from Crawford<br>
-        <span class="t">FRI</span> — Data analysis, grad app draft<br>
-        <span class="t">SAT</span> — <span class="s">nothing</span> more research<br>
-        <span class="t">SUN</span> — Everything I didn't finish
-      </div>`
-  },
-  lamp: {
-    icon: '🕯️', title: 'Late Night',
-    html: `
-      <div class="tag">2:14 AM</div>
-      <div class="quote">
-        "The lamp was the only light on in the building at this hour. She liked it that way — the quiet, just her and the data.<br><br>
-        She did not like that she kept losing her place in the spreadsheet.<br><br>
-        She did not like what she was losing it to."
-      </div>`
-  }
+  window:   { icon:'🌙', title:'The Window',    html:`<div class="tag">Night View</div><div class="qt">"She could see the rink from here — the distant blue-white glow cutting through the dark. Two years she had spent learning to look past it.<br><br>Tonight, for the first time, she didn't look away."</div>` },
+  pinboard: { icon:'📌', title:'Her Pinboard',  html:`<div class="tag">Summer's Goals</div><div class="pr"><p>Behind the grad school draft, the only crooked thing in the room — a sticky note in blue ballpoint:</p></div><div class="stk"><strong>Things that will NOT derail me:</strong><br>— bad weather<br>— group projects<br>— unreliable subjects<br>— <span style="text-decoration:line-through;opacity:.45">hockey players</span></div>` },
+  shelf:    { icon:'📚', title:'Her Bookshelf', html:`<div class="tag">Reading List</div><div class="pr"><p>The psychology spines are worn flat, dog-eared, annotated in her neat, unforgiving hand.</p><br><p><span class="hl">Sport Psychology: Theory &amp; Practice</span> — flagged on p.214: <em>"The athlete's greatest opponent lives between their ears."</em></p><br><p>Wedged between two textbooks: a battered copy of <em>Pride and Prejudice</em>. No annotations. Just fingerprints on page one and page three-twelve.</p></div>` },
+  lamp:     { icon:'🕯️', title:'Late Night',    html:`<div class="tag">2:14 AM</div><div class="qt">"The lamp was the only light on in the building at this hour. She liked it that way — the quiet, just her and the data.<br><br>She did not like that she kept losing her place in the spreadsheet.<br><br>She did not like what she was losing it to."</div>` },
+  notebook: { icon:'📓', title:'Her Planner',   html:`<div class="tag">This Week</div><div class="sch"><span class="t">MON</span> — Lecture, research session, library 6–9<br><span class="t">TUE</span> — Office hours, <span class="s">avoid the rink</span> study group<br><span class="t">WED</span> — Subject observation (rink, 7PM) ⚠<br><span class="t">THU</span> — Questionnaire due from Crawford<br><span class="t">FRI</span> — Data analysis, grad app draft<br><span class="t">SAT</span> — <span class="s">nothing</span> more research<br><span class="t">SUN</span> — Everything I didn't finish</div>` },
+  phone:    { icon:'📱', title:'Her Phone',     html:`<div class="tag">New Message</div><div class="ims"><div class="mw r"><div class="mn">Summer</div><div class="mb sn">I need you to complete the behavioral questionnaire by Thursday. All 47 questions.</div></div><div class="mw l"><div class="mn">Crawford #7</div><div class="mb rc">47?? is this a study or a trial</div></div><div class="mw r"><div class="mn">Summer</div><div class="mb sn">It's for science. Thursday.</div></div><div class="mw l"><div class="mn">Crawford #7</div><div class="mb rc">what if I have questions for you</div></div><div class="mw r"><div class="mn">Summer</div><div class="mb sn">You don't.</div></div><div class="mw l"><div class="mn">Crawford #7</div><div class="mb rc">favorite color</div></div><div class="mw r"><div class="mn">Summer</div><div class="mb sn">Thursday, Crawford.</div></div></div>` },
+  glasses:  { icon:'👓', title:'Her Glasses',   html:`<div class="tag">Character Note</div><div class="qt">"She saw everything clearly.<br><br>Data. Patterns. The way people gave themselves away under observation.<br><br>Aiden Crawford, she had decided on day one, was an open book.<br><br>She was wrong about that."</div>` },
+  bed:      { icon:'🌙', title:'Her Bed',       html:`<div class="tag">10:52 PM</div><div class="qt">"She had a plan for the year. A tight, precise, color-coded plan.<br><br>It did not include lying awake at eleven thinking about the way he looked at her across the ice — not at her clipboard, not past her.<br><br>At her."</div>` },
+  jersey:   { icon:'🏒', title:'...Wait.',      html:`<div class="tag">Easter Egg</div><div class="eg">A red jersey. Number 7.<br>Folded. <em>Of course</em> it's folded.<br><br><em>"It was just easier than giving it back. That's all."</em><br><br><span style="font-size:12px;opacity:.55;font-style:normal">She had said that to herself four times this week.</span></div>` },
 };
 
-function open_(key) {
-  const d = reveals[key];
-  if (!d) return;
-  document.getElementById('mIcon').textContent  = d.icon;
-  document.getElementById('mTitle').textContent = d.title;
-  document.getElementById('mBody').innerHTML    = d.html;
-  document.getElementById('overlay').classList.add('open');
+function om(key) {
+  const d = reveals[key]; if(!d) return;
+  document.getElementById('mi').textContent = d.icon;
+  document.getElementById('mt').textContent = d.title;
+  document.getElementById('mb').innerHTML   = d.html;
+  document.getElementById('ov').classList.add('open');
+}
+function cm()  { document.getElementById('ov').classList.remove('open'); }
+function co(e) { if(e.target===document.getElementById('ov')) cm(); }
+document.addEventListener('keydown', e => { if(e.key==='Escape') cm(); });
+window.om = om; window.cm = cm; window.co = co;
+
+// ── RENDERER ──
+const canvas = document.getElementById('c');
+let W = innerWidth, H = innerHeight;
+
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setSize(W, H);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+
+// ── SCENE ──
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0a1628);
+scene.fog = new THREE.FogExp2(0x0a1222, 0.02);
+
+const camera = new THREE.PerspectiveCamera(70, W/H, 0.05, 60);
+camera.position.set(0, 0.5, 0);
+
+// ── POST PROCESSING ──
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(W,H), 0.5, 0.5, 0.75);
+composer.addPass(bloom);
+composer.addPass(new ShaderPass(GammaCorrectionShader));
+
+// ── TOON GRADIENT ──
+function makeToon() {
+  const data = new Uint8Array([80,80,80,255, 160,160,160,255, 230,230,230,255]);
+  const t = new THREE.DataTexture(data, 3, 1);
+  t.magFilter = THREE.NearestFilter; t.needsUpdate = true; return t;
+}
+const toon = makeToon();
+
+function mat(color, emissive=0x000000, emissiveIntensity=0) {
+  return new THREE.MeshToonMaterial({ color, gradientMap:toon, emissive, emissiveIntensity });
 }
 
-function close_() { document.getElementById('overlay').classList.remove('open'); }
-function closeOut(e) { if (e.target === document.getElementById('overlay')) close_(); }
-document.addEventListener('keydown', e => { if (e.key === 'Escape') close_(); });
-
-// ── 3D MOUSE PARALLAX ──
-const scene = document.getElementById('scene');
-const card  = document.getElementById('card');
-const MAX_TILT = 12; // degrees
-
-scene.addEventListener('mousemove', e => {
-  const r   = scene.getBoundingClientRect();
-  const x   = (e.clientX - r.left)  / r.width  - 0.5; // -0.5 to 0.5
-  const y   = (e.clientY - r.top)   / r.height - 0.5;
-  const rX  =  y * MAX_TILT * -1;
-  const rY  =  x * MAX_TILT;
-  card.style.transform = `rotateX(${rX}deg) rotateY(${rY}deg)`;
-});
-
-scene.addEventListener('mouseleave', () => {
-  card.style.transition = 'transform 0.6s ease-out';
-  card.style.transform  = 'rotateX(0deg) rotateY(0deg)';
-  setTimeout(() => { card.style.transition = 'transform 0.08s ease-out'; }, 650);
-});
-
-// ── FLOATING DUST PARTICLES ──
-const dustLayer = document.getElementById('dust');
-for (let i = 0; i < 22; i++) {
-  const d = document.createElement('div');
-  d.className = 'dust';
-  const tx = (Math.random() - 0.5) * 60;
-  const ty = -(30 + Math.random() * 80);
-  d.style.cssText = `
-    left:${20 + Math.random() * 60}%;
-    top:${30 + Math.random() * 50}%;
-    --d:${6 + Math.random() * 8}s;
-    --dl:${(Math.random() * 6).toFixed(1)}s;
-    --tx:${tx.toFixed(0)}px;
-    --ty:${ty.toFixed(0)}px;
-    opacity:${0.3 + Math.random() * 0.5};
-    width:${Math.random() < 0.3 ? 3 : 2}px;
-    height:${Math.random() < 0.3 ? 3 : 2}px;
-  `;
-  dustLayer.appendChild(d);
+// Outline helper (inverted hull — no extra pass needed)
+function outline(mesh, thickness=0.04, color=0x0a1628) {
+  const m = new THREE.Mesh(mesh.geometry, new THREE.MeshBasicMaterial({ color, side:THREE.BackSide }));
+  m.scale.setScalar(1 + thickness);
+  mesh.add(m);
 }
+
+// Box helper
+function box(w,h,d, color, x,y,z, rx=0,ry=0, em=0, ei=0) {
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat(color,em,ei));
+  mesh.position.set(x,y,z);
+  mesh.rotation.set(rx,ry,0);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  scene.add(mesh);
+  outline(mesh);
+  return mesh;
+}
+
+// ── LIGHTS ──
+scene.add(new THREE.AmbientLight(0xc8d8f0, 0.5));
+
+const deskLight = new THREE.PointLight(0xffd070, 3, 14);
+deskLight.position.set(3.5, 1.5, -7.5);
+deskLight.castShadow = true;
+scene.add(deskLight);
+
+const moonLight = new THREE.DirectionalLight(0x8ab4d8, 0.3);
+moonLight.position.set(-3, 5, -10);
+scene.add(moonLight);
+
+const fill = new THREE.HemisphereLight(0xc8d8f0, 0x9a7a58, 0.25);
+scene.add(fill);
+
+// ── ROOM WALLS ──
+const WALL = 0xc8d8ec, FLOOR = 0x9a7a58, CEIL = 0xe8eaf0;
+const R = 11; // half room size, height 5.5
+
+// Floor
+const floor = new THREE.Mesh(new THREE.BoxGeometry(R*2,0.15,R*2), mat(FLOOR));
+floor.position.set(0,-5.5,0); floor.receiveShadow=true; scene.add(floor);
+
+// Ceiling
+const ceil = new THREE.Mesh(new THREE.BoxGeometry(R*2,0.15,R*2), mat(CEIL));
+ceil.position.set(0,5.5,0); scene.add(ceil);
+
+// Walls (use BackSide so inside is rendered)
+const wm = new THREE.MeshToonMaterial({ color:WALL, gradientMap:toon, side:THREE.BackSide });
+const wallBox = new THREE.Mesh(new THREE.BoxGeometry(R*2, 11, R*2), [wm,wm,wm,wm,wm,wm]);
+scene.add(wallBox);
+
+// Floor wood grain lines
+for(let i=-9;i<=9;i+=1.4) {
+  const plank = new THREE.Mesh(new THREE.BoxGeometry(0.06,0.02,R*2), mat(0x886050));
+  plank.position.set(i,-5.42,0); scene.add(plank);
+}
+
+// ── WINDOW (front-left wall, -Z face area) ──
+// Window opening (dark sky)
+const skyMat = new THREE.MeshBasicMaterial({ color:0x060e1a });
+const winPane = new THREE.Mesh(new THREE.BoxGeometry(3.5,2.8,0.1), skyMat);
+winPane.position.set(-4, 2, -10.9); scene.add(winPane);
+
+// Stars
+const starGeo = new THREE.BufferGeometry();
+const starPos = new Float32Array(200*3);
+for(let i=0;i<200;i++){
+  starPos[i*3]   = -4 + (Math.random()-0.5)*3.2;
+  starPos[i*3+1] = 2  + (Math.random()-0.5)*2.5;
+  starPos[i*3+2] = -10.85;
+}
+starGeo.setAttribute('position', new THREE.BufferAttribute(starPos,3));
+const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({ color:0xffffff, size:0.04, transparent:true, opacity:0.9 }));
+scene.add(stars);
+
+// Rink glow at bottom of window
+const rinkGeo = new THREE.PlaneGeometry(3.4, 0.8);
+const rinkMat = new THREE.MeshBasicMaterial({ color:0x4090ff, transparent:true, opacity:0.25 });
+const rink = new THREE.Mesh(rinkGeo, rinkMat);
+rink.position.set(-4, 0.7, -10.85); scene.add(rink);
+
+// Window frame
+const wfc = 0x5a4030;
+box(3.8,0.12,0.15, wfc, -4, 3.45,-10.85);   // top
+box(3.8,0.12,0.15, wfc, -4, 0.6, -10.85);   // bottom
+box(0.12,2.9,0.15, wfc, -5.9,2,  -10.85);   // left
+box(0.12,2.9,0.15, wfc, -2.1,2,  -10.85);   // right
+box(0.12,2.9,0.15, wfc, -4,  2,  -10.85);   // mullion
+// Curtains
+box(0.5,3.2,0.12, 0x1b3a6b, -6.2,2,-10.8);
+box(0.5,3.2,0.12, 0x1b3a6b, -1.8,2,-10.8);
+
+// ── PINBOARD (above desk, front wall) ──
+box(3.2,2,0.08, 0xc4a882, 3.5,2.8,-10.88);                     // board
+box(3.4,2.2,0.05, wfc,     3.5,2.8,-10.92);                     // frame
+// Papers on board
+box(0.9,0.7,0.03, 0xfefce8, 2.4,3.2,-10.82, 0,0);
+box(1.2,0.5,0.03, 0xfefce8, 3.7,3.3,-10.82, 0,0.04);
+box(1.4,0.6,0.03, 0xfefce8, 3.2,2.4,-10.82, 0,-0.03);
+// Pins
+const pinMat = mat(0xc0392b, 0xc0392b, 0.5);
+[-0.3,0.6,0.2].forEach((x,i)=>{
+  const p = new THREE.Mesh(new THREE.SphereGeometry(0.05), pinMat);
+  p.position.set(3.5+x, 2.4+i*0.4, -10.8); scene.add(p);
+});
+
+// ── DESK ──
+box(7,0.14,1.9, 0x3a2818, 3.5,-2.05,-8.7);     // surface
+box(0.15,2.0,0.15, 0x2a1808, 0.5,-3.2,-8.6);   // leg L
+box(0.15,2.0,0.15, 0x2a1808, 6.5,-3.2,-8.6);   // leg R
+box(7,0.12,1.9, 0x4a3020, 3.5,-4.1,-8.7);       // shelf under
+
+// ── LAMP ──
+box(0.7,0.45,0.7, 0xe8d070, 4.8,-1.4,-8.6, 0,0, 0xffd070,1.8); // shade (emissive!)
+box(0.06,1.1,0.06, 0x888, 4.8,-2.0,-8.7);       // pole
+box(0.3,0.07,0.3, 0x888,  4.8,-2.55,-8.7);      // base
+
+// ── NOTEBOOK ──
+box(0.85,0.07,1.1, 0x1b3a6b, 2.8,-1.96,-8.65);  // cover
+box(0.8,0.04,1.05, 0xf8f8f0, 2.8,-1.9,-8.65);   // pages
+// Lines on notebook
+for(let i=0;i<5;i++){
+  const l = new THREE.Mesh(new THREE.BoxGeometry(0.7,0.01,0.02), mat(0xc8d0e0));
+  l.position.set(2.8,-1.85,-8.1+i*0.12); scene.add(l);
+}
+
+// ── PHONE ──
+box(0.32,0.06,0.62, 0x1a1a1a,  5.4,-1.97,-8.6); // body
+box(0.28,0.02,0.58, 0x1a3a5a,  5.4,-1.93,-8.6); // screen
+
+// ── GLASSES ──
+// Two lens frames + bridge
+const glassC = 0x1a1a3a;
+box(0.35,0.03,0.28, glassC, 6.1,-1.96,-8.65, 0,0);
+box(0.35,0.03,0.28, glassC, 6.5,-1.96,-8.65, 0,0);
+box(0.06,0.03,0.02, glassC, 6.3,-1.96,-8.65);  // bridge
+
+// ── PLANT ──
+box(0.35,0.42,0.35, 0xa05828, 1.5,-1.76,-8.6);  // pot
+box(0.08,0.55,0.08, 0x2d7a2d, 1.5,-1.2,-8.6);   // stem
+box(0.5,0.1,0.18,  0x2d7a2d, 1.3,-1.0,-8.55, 0,0,-0.3); // leaf L
+box(0.5,0.1,0.18,  0x3a9a3a, 1.7,-0.9,-8.55, 0,0, 0.3); // leaf R
+
+// ── CHAIR ──
+box(1.4,0.1,1.4,  0x2a1808, 3.5,-2.7,-6.8);    // seat
+box(1.4,1.5,0.1,  0x2a1808, 3.5,-2.0,-7.5);    // back
+box(0.1,0.65,0.1, 0x2a1808, 2.85,-3.35,-6.25); // leg FL
+box(0.1,0.65,0.1, 0x2a1808, 4.15,-3.35,-6.25); // leg FR
+box(0.1,0.65,0.1, 0x2a1808, 2.85,-3.35,-7.35); // leg BL
+box(0.1,0.65,0.1, 0x2a1808, 4.15,-3.35,-7.35); // leg BR
+
+// ── BOOKSHELF (left wall) ──
+box(0.3,5.5,4.2, 0x3a2818, -10.8,-0.5,-1);      // back panel
+box(0.12,0.12,4,  0x4a3020, -10.65,2.2,-1);      // shelf top
+box(0.12,0.12,4,  0x4a3020, -10.65,0.4,-1);      // shelf mid
+box(0.12,0.12,4,  0x4a3020, -10.65,-1.4,-1);     // shelf bot
+box(0.12,0.12,4,  0x4a3020, -10.65,-3.2,-1);     // shelf base
+
+const bookColors = [0xc0392b,0x1b3a6b,0x27ae60,0x8e44ad,0xe67e22,0x2c3e50,0xe74c3c,0x16a085,0xd4a017,0x5b2c6f];
+const shelves = [2.3,0.5,-1.3];
+shelves.forEach((sy,si)=>{
+  for(let i=0;i<7;i++){
+    const h=0.7+Math.random()*0.4;
+    const bk = new THREE.Mesh(new THREE.BoxGeometry(0.18,h,0.28), mat(bookColors[(si*7+i)%bookColors.length]));
+    bk.position.set(-10.6, sy+h/2-0.05, -2.8+i*0.5);
+    bk.castShadow=true; scene.add(bk); outline(bk,0.06);
+  }
+});
+
+// ── BED (right wall) ──
+box(0.3,2.0,5,  0x3a2818, 10.8,-2,-1);          // headboard side
+box(4.8,0.15,5, 0x2a1808, 10.55,-3.1,-1);        // base
+box(4.6,0.45,4.8, 0xece4d4, 10.5,-2.85,-1);      // mattress
+box(4.6,0.35,1.5, 0x1b3a6b, 10.5,-2.65, 1.5);   // blanket
+box(1.2,0.4,0.7, 0xf0f4f8, 10.45,-2.55,-3.2);   // pillow 1
+box(1.1,0.38,0.7, 0xdce8f0, 10.45,-2.57,-2.2);  // pillow 2
+// Blanket fold detail
+box(4.6,0.08,0.12, 0x2a52a0, 10.5,-2.48,0.76);
+
+// ── JERSEY (easter egg - draped on chair back) ──
+box(1.2,1.4,0.08, 0xc0392b, 3.5,-1.35,-7.5);    // jersey body
+box(0.32,0.6,0.08,0xc0392b, 2.7,-1.2,-7.5);     // left sleeve
+box(0.32,0.6,0.08,0xc0392b, 4.3,-1.2,-7.5);     // right sleeve
+// Number 7
+box(0.35,0.5,0.05, 0xffffff, 3.5,-1.35,-7.46, 0,0);
+
+// ── NIGHTSTAND ──
+box(1.2,0.12,1.0, 0x3a2818, 10.5,-1.88,-4.4);   // top
+box(1.0,0.9,0.8,  0x2a1808, 10.5,-2.35,-4.4);   // body
+// Small lamp on nightstand
+box(0.4,0.28,0.4, 0xe0d060, 10.4,-1.56,-4.4, 0,0, 0xffd060,0.5);
+
+// ── RUG ──
+const rugGeo = new THREE.BoxGeometry(6,0.06,4);
+const rugMesh = new THREE.Mesh(rugGeo, mat(0x3a4a6a));
+rugMesh.position.set(0,-5.43,0); rugMesh.receiveShadow=true; scene.add(rugMesh);
+outline(rugMesh,0.04,0x1a2a4a);
+
+// ── FAIRY LIGHTS (ceiling) ──
+const flColors = [0xf5d020,0xa8e6cf,0xff8b94,0xa8c4e0,0xffd3a5,0xc3b1e1];
+for(let i=0;i<24;i++){
+  const t=i/23;
+  const x=-10+t*20;
+  const y=5.2+Math.sin(t*Math.PI)*-0.4; // droop
+  const glow = new THREE.Mesh(
+    new THREE.SphereGeometry(0.07,6,6),
+    new THREE.MeshBasicMaterial({ color:flColors[i%flColors.length] })
+  );
+  glow.position.set(x,y,0);
+  scene.add(glow);
+  // String
+  if(i>0){
+    const prev = new THREE.Vector3(-10+(i-1)/23*20, 5.2+Math.sin((i-1)/23*Math.PI)*-0.4, 0);
+    const curr = new THREE.Vector3(x,y,0);
+    const dir = curr.clone().sub(prev);
+    const len = dir.length();
+    const mid = prev.clone().add(curr).multiplyScalar(0.5);
+    const seg = new THREE.Mesh(new THREE.BoxGeometry(len,0.02,0.02), mat(0x666666));
+    seg.position.copy(mid);
+    seg.lookAt(curr); scene.add(seg);
+  }
+}
+
+// ── DUST PARTICLES ──
+const dustGeo = new THREE.BufferGeometry();
+const dp = new Float32Array(250*3);
+for(let i=0;i<250;i++){
+  dp[i*3]=(Math.random()-.5)*18; dp[i*3+1]=(Math.random()-.5)*8; dp[i*3+2]=(Math.random()-.5)*18;
+}
+dustGeo.setAttribute('position', new THREE.BufferAttribute(dp,3));
+scene.add(new THREE.Points(dustGeo, new THREE.PointsMaterial({ color:0xfff8e0,size:0.035,transparent:true,opacity:0.5 })));
+
+// ── HOTSPOTS ──
+const hsDefs = [
+  { key:'window',   tip:'The Window',      px:-4,    py:2,    pz:-10.2 },
+  { key:'pinboard', tip:'Her Pinboard',    px:3.5,   py:2.8,  pz:-10.2 },
+  { key:'shelf',    tip:'Her Bookshelf',   px:-10.2, py:0.5,  pz:-1    },
+  { key:'lamp',     tip:'Her Lamp',        px:4.8,   py:-1.0, pz:-8.6  },
+  { key:'notebook', tip:'Her Planner',     px:2.8,   py:-1.6, pz:-8.65 },
+  { key:'phone',    tip:'Her Phone',       px:5.4,   py:-1.6, pz:-8.6  },
+  { key:'glasses',  tip:'Her Glasses',     px:6.3,   py:-1.6, pz:-8.65 },
+  { key:'bed',      tip:'Her Bed',         px:10.2,  py:-2.5, pz:-1    },
+  { key:'jersey',   tip:"What's this...?", px:3.5,   py:-1.2, pz:-7.5  },
+];
+
+const hsl = document.getElementById('hsl');
+const hsObjs = hsDefs.map(d=>{
+  const el = document.createElement('div');
+  el.className='hs'; el.setAttribute('data-tip',d.tip);
+  el.innerHTML='<div class="hsi"><div class="hsr"></div><div class="hsd"></div></div>';
+  el.addEventListener('click',()=>{ if(!wasDrag) om(d.key); });
+  hsl.appendChild(el);
+  return { ...d, pos:new THREE.Vector3(d.px,d.py,d.pz), el };
+});
+
+// ── CAMERA CONTROLS ──
+let yaw=0, pitch=0, isDrag=false, wasDrag=false, lx=0, ly=0;
+const lookTgt = new THREE.Vector3();
+const prj     = new THREE.Vector3();
+
+canvas.addEventListener('mousedown',e=>{ isDrag=true;wasDrag=false;lx=e.clientX;ly=e.clientY;document.body.classList.add('drag'); });
+window.addEventListener('mousemove',e=>{
+  if(!isDrag)return;
+  const dx=e.clientX-lx,dy=e.clientY-ly;
+  if(Math.abs(dx)+Math.abs(dy)>3)wasDrag=true;
+  lx=e.clientX;ly=e.clientY;
+  yaw-=dx*.0038; pitch-=dy*.0028;
+  pitch=Math.max(-.45,Math.min(.38,pitch));
+});
+window.addEventListener('mouseup',()=>{ isDrag=false;document.body.classList.remove('drag');setTimeout(()=>wasDrag=false,50); });
+canvas.addEventListener('touchstart',e=>{ lx=e.touches[0].clientX;ly=e.touches[0].clientY;wasDrag=false; },{passive:true});
+canvas.addEventListener('touchmove',e=>{
+  e.preventDefault();
+  const dx=e.touches[0].clientX-lx,dy=e.touches[0].clientY-ly;
+  wasDrag=true;lx=e.touches[0].clientX;ly=e.touches[0].clientY;
+  yaw-=dx*.0038;pitch-=dy*.0028;pitch=Math.max(-.45,Math.min(.38,pitch));
+},{passive:false});
+
+// ── LOADING DONE ──
+setTimeout(()=>{
+  document.getElementById('load').classList.add('hide');
+  setTimeout(()=>document.getElementById('load').style.display='none',900);
+},500);
+
+// ── RENDER LOOP ──
+let t=0;
+(function animate(){
+  requestAnimationFrame(animate);
+  t+=0.012;
+
+  // Flicker lamp
+  deskLight.intensity = 2.8+Math.sin(t*4.1)*.15+Math.sin(t*11.3)*.06;
+
+  // Rotate dust slowly
+  scene.traverse(o=>{ if(o.isPoints)o.rotation.y=t*.006; });
+
+  // Camera look
+  lookTgt.set(Math.sin(yaw)*Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw)*Math.cos(pitch));
+  camera.lookAt(lookTgt);
+
+  // Update hotspot overlays
+  hsObjs.forEach(h=>{
+    prj.copy(h.pos).project(camera);
+    const inf = prj.z<1&&prj.z>-1;
+    const sx=(prj.x+1)/2*W, sy=(-prj.y+1)/2*H;
+    const on=sx>-40&&sx<W+40&&sy>-40&&sy<H+40;
+    h.el.style.opacity       = (inf&&on)?'1':'0';
+    h.el.style.pointerEvents = (inf&&on)?'all':'none';
+    h.el.style.left=sx+'px'; h.el.style.top=sy+'px';
+  });
+
+  composer.render();
+})();
+
+// ── RESIZE ──
+window.addEventListener('resize',()=>{
+  W=innerWidth;H=innerHeight;
+  camera.aspect=W/H; camera.updateProjectionMatrix();
+  renderer.setSize(W,H); composer.setSize(W,H);
+});
 </script>
 </body>
 </html>
