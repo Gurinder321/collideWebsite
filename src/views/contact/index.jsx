@@ -4,8 +4,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { contactSchema } from "@/validation/contactForm";
 import { useProfanityChecker } from "glin-profanity";
 import { ImSpinner2 } from "react-icons/im";
-import { motion } from "framer-motion";
-import { useInView } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 
 const stagger = {
   hidden: {},
@@ -17,15 +16,19 @@ const fadeUp = {
   visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 80, damping: 18 } },
 };
 
+const FORMSPREE_URL = "https://formspree.io/f/mdapngnv";
+
 const Subscribe = () => {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(contactSchema),
     mode: "onSubmit",
   });
+  const [submitted, setSubmitted] = useState(false);
 
   const { result, checkText } = useProfanityChecker({
     languages: ["english"],
@@ -51,13 +54,14 @@ const Subscribe = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("/api/contact", {
+      const response = await fetch(FORMSPREE_URL, {
         method: "POST",
         body: JSON.stringify(data),
         headers: { "Content-Type": "application/json", Accept: "application/json" },
       });
-      if (response.status === 200) {
-        alert("Message sent successfully!");
+      if (response.ok) {
+        setSubmitted(true);
+        reset();
       } else {
         alert("Failed to send the message. Please try again later.");
       }
@@ -131,6 +135,23 @@ const Subscribe = () => {
             initial="hidden"
             animate={isInView ? "visible" : "hidden"}
           >
+            {submitted ? (
+              <motion.div
+                className="flex flex-col gap-4 py-12 text-center"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ type: "spring", stiffness: 80, damping: 18 }}
+              >
+                <p className="text-4xl sm:text-5xl font-thin italic font-metal text-gray-200">Thank you!</p>
+                <p className="text-gray-400 font-montserrat text-sm">Your message has been sent. I&apos;ll be in touch soon.</p>
+                <button
+                  onClick={() => setSubmitted(false)}
+                  className="mt-4 text-xs text-gray-500 underline underline-offset-2 hover:text-gray-300 transition-colors"
+                >
+                  Send another message
+                </button>
+              </motion.div>
+            ) : (
             <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
               <motion.div className="gap-1 w-full flex flex-col" variants={fadeUp}>
                 <input
@@ -190,6 +211,7 @@ const Subscribe = () => {
                 </motion.button>
               </motion.div>
             </form>
+            )}
           </motion.div>
         </div>
       </motion.div>
