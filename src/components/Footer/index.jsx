@@ -31,7 +31,7 @@ const Footer = () => {
           ))}
         </div>
         <p className="text-xs sm:text-sm text-center text-gray-300 px-6">
-          COPYRIGHT © 2024 BAL KHABRA | ALL RIGHTS RESERVED
+          COPYRIGHT © {new Date().getFullYear()} BAL KHABRA | ALL RIGHTS RESERVED
         </p>
       </div>
     </footer>
