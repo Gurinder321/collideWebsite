@@ -1,0 +1,18 @@
+export const instagramPhotos = [
+    { id: 1,  url: '/insta/photos1.JPG',  alt: ' photos01'}, 
+    { id: 2,  url: '/insta/photos2.JPG',  alt: ' photos02'},
+    { id: 3,  url: '/insta/photos3.JPG',  alt: ' photos03'},
+    { id: 4,  url: '/insta/photos4.JPG',  alt: ' photos04'},
+    { id: 5,  url: '/insta/photos5.JPG',  alt: ' photos05'},
+    { id: 6,  url: '/insta/photos6.JPG',  alt: ' photos06'}, 
+    { id: 7,  url: '/insta/photos7.JPG',  alt: ' photos07'}, 
+    { id: 8,  url: '/insta/photos8.JPG',  alt: ' photos08'}, 
+    { id: 9,  url: '/insta/photos9.JPG',  alt: ' photos09'},
+    { id: 10, url: '/insta/photos10.JPG', alt: ' photos10'},
+    { id: 11, url: '/insta/photos11.PNG', alt: ' photos11'},
+    { id: 12, url: '/insta/photos12.JPG', alt: ' photos12'},
+    { id: 13, url: '/insta/photos13.JPG', alt: ' photos13'},
+    { id: 14, url: '/insta/photos14.jpg', alt: ' photos14'},
+    { id: 15, url: '/insta/photos15.jpg', alt: ' photos15'},
+    { id: 16, url: '/insta/photos16.jpg', alt: ' photos16'},
+  ];
