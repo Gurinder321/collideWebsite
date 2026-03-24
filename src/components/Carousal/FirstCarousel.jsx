@@ -54,8 +54,8 @@ const FirstCarousel = ({ data }) => {
                 style={{ objectFit: 'contain' }}
                 className="transition-opacity duration-300 group-hover:opacity-80"
               />
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <span className="bg-[#FF9900] text-white text-[10px] sm:text-xs font-poppins font-semibold px-3 py-1 rounded-full shadow-lg">
+              <div className="absolute left-1/2 top-[38%] -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <span className="bg-[#FF9900] text-white text-[10px] sm:text-xs font-poppins font-semibold px-3 py-1 rounded-full shadow-lg whitespace-nowrap">
                   Buy on Amazon
                 </span>
               </div>
