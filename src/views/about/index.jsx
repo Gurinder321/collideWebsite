@@ -74,16 +74,12 @@ const About = () => {
 
           {/* Image Content */}
           <motion.div
-            className="w-full md:w-1/2 p-10 md:p-6 lg:p-16 aspect-square"
+            className="w-full md:w-1/2 flex justify-center items-center p-6 md:p-4 lg:p-10"
             variants={fadeRight}
             initial="hidden"
             animate={isInView ? 'visible' : 'hidden'}
           >
-            <motion.div
-              className="relative w-full h-full rounded-full bg-[#f6c3c8] border-2"
-              animate={{ y: [0, -8, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-            >
+            <div className="relative w-[60%] md:w-[60%] aspect-square rounded-full bg-[#f6c3c8] border-2">
               <Image
                 src="/girl.png"
                 alt="girl"
@@ -91,7 +87,7 @@ const About = () => {
                 objectFit="cover"
                 className="shadow-default rounded-full border-2 border-black w-11/12"
               />
-            </motion.div>
+            </div>
           </motion.div>
 
         </div>
