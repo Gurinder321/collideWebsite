@@ -45,11 +45,10 @@ const Subscribe = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-60px" });
 
+  const hasProfanity = !!result?.containsProfanity;
+
   const onSubmit = async (data) => {
-    if (result?.containsProfanity) {
-      alert("Please revise your message to remove inappropriate content.");
-      return;
-    }
+    if (hasProfanity) return;
     if (isSubmitting) return;
     setIsSubmitting(true);
 
@@ -198,10 +197,14 @@ const Subscribe = () => {
               <motion.div variants={fadeUp}>
                 <motion.button
                   type="submit"
-                  disabled={isSubmitting}
-                  className="px-6 py-2 w-24 bg-transparent border border-gray-500 text-white font-semibold rounded-sm flex items-center justify-center hover:border-[#d6d5db] transition-colors duration-200"
-                  whileHover={{ scale: 1.03, borderColor: '#d6d5db' }}
-                  whileTap={{ scale: 0.97 }}
+                  disabled={isSubmitting || hasProfanity}
+                  className={`px-6 py-2 w-24 bg-transparent border text-white font-semibold rounded-sm flex items-center justify-center transition-colors duration-200 ${
+                    hasProfanity
+                      ? "border-red-800 text-red-800 cursor-not-allowed opacity-50"
+                      : "border-gray-500 hover:border-[#d6d5db]"
+                  }`}
+                  whileHover={!hasProfanity ? { scale: 1.03, borderColor: '#d6d5db' } : {}}
+                  whileTap={!hasProfanity ? { scale: 0.97 } : {}}
                 >
                   {isSubmitting ? (
                     <ImSpinner2 className="animate-spin text-white text-xl" />
