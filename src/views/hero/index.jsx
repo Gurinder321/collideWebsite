@@ -24,7 +24,7 @@ const Hero = () => {
   const icons = [Amazon, Target, Barnenobles, Booksmellion, Walmart];
 
   return (
-    <section id='#hero' className="flex flex-col justify-center relative items-center pt-32 sm:pt-20 md:pt-24 overflow-x-hidden">
+    <section id='#hero' className="flex flex-col justify-center relative items-center pt-40 sm:pt-36 md:pt-40 overflow-x-hidden">
       {/* Background Overlay */}
       <div className="bg-[#1f1e2c] w-full h-1/2 absolute bottom-0" />
 
