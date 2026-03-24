@@ -1,5 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 
 const containerVariants = {
@@ -39,14 +40,27 @@ const FirstCarousel = ({ data }) => {
               {book.isavailable}
             </h1>
 
-            <div className="w-full relative aspect-[1/1.2]">
+            {/* Book cover — links to Amazon */}
+            <Link
+              href={book.amazonUrl || '#'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group relative w-full aspect-[1/1.2] block"
+            >
               <Image
                 src={book.bookcover}
                 alt={book.title}
                 fill
                 style={{ objectFit: 'contain' }}
+                className="transition-opacity duration-300 group-hover:opacity-80"
               />
-            </div>
+              {/* Amazon hover badge */}
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <span className="bg-[#FF9900] text-white text-[10px] sm:text-xs font-poppins font-semibold px-3 py-1 rounded-full shadow-lg">
+                  Buy on Amazon
+                </span>
+              </div>
+            </Link>
 
             <h3
               className={`text-xs z-10 sm:text-xl mt-2 sm:mt-5 font-semibold font-markazitext mb-2 ${(index === 0 || index === 1) ? 'text-black md:text-white' : 'text-white'}`}

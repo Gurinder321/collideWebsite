@@ -11,6 +11,7 @@ export const booksdata = [
     releaseDate: 'May, 2024 ',
     character: 'Aiden & Summer',
     read: 'https://www.penguinrandomhouse.com/books/761855/collide-by-bal-khabra/',
+    amazonUrl: 'https://www.amazon.com/s?k=Collide+Bal+Khabra',
     goodreads: 'https://www.goodreads.com/book/show/197306586-collide ',
     contentwarings: [
       'Parental neglect',
@@ -35,6 +36,7 @@ export const booksdata = [
     isavailable: 'OUT NOW!',
     releaseDate: 'January, 2025',
     read: 'https://www.penguinrandomhouse.com/books/761858/spiral-by-bal-khabra/9780593818282/ ',
+    amazonUrl: 'https://www.amazon.com/s?k=Spiral+Bal+Khabra',
     goodreads: 'https://www.goodreads.com/book/show/199246937-spiral',
     character: 'Elias & Sage',
     contentwarings: [
@@ -60,6 +62,7 @@ export const booksdata = [
     isavailable: 'OUT NOW!',
     releaseDate: 'October, 2025',
     read: 'https://www.penguinrandomhouse.com/books/761859/revolve-by-bal-khabra/ ',
+    amazonUrl: 'https://www.amazon.com/s?k=Revolve+Bal+Khabra',
     goodreads: 'https://www.goodreads.com/book/isbn/9780593818305',
     character: 'Dylan & Sierra',
     contentwarings: [
@@ -75,30 +78,31 @@ export const booksdata = [
     `,
   },
   {
-    id: '03',
+    id: '04',
     title: 'Embrace',
-    subtitle: 'OFF THE ICE #3',
+    subtitle: 'OFF THE ICE #4',
     titleimg:'/embracetitle.png',
     bookcover: '/embracebook.png',
     imgSrc: '/embracecover.jpeg',
     bgColor: '#F7A33E',
     isavailable: 'COMING AUGUST 4, 2026',
     releaseDate: 'August, 2026',
-    read: 'https://www.penguinrandomhouse.com/books/815798/embrace-by-bal-khabra ',
+    read: 'https://www.penguinrandomhouse.com/books/815798/embrace-by-bal-khabra',
+    amazonUrl: 'https://www.amazon.com/s?k=Embrace+Bal+Khabra',
     // goodreads: "https://www.goodreads.com/book/isbn/9780593818305",
     character: 'Kian & Scarlett',
     contentwarings: [
       'Alcohol use & party culture',
       'Academic pressure and stress',
       'Parental pressure / expectations',
-      'Reference to a deceased parent (Kian’s father)',
-      'Secrets / power-imbalance dynamics (relationship with coach’s daughter)',
+      'Reference to a deceased parent (Kian\u2019s father)',
+      'Secrets / power-imbalance dynamics (relationship with coach\u2019s daughter)',
     ],
     description: `
-      <p>An unexpected spark between a hockey player and the coach’s daughter might cause them to cross the line in the next Dalton University book from international bestselling author Bal Khabra. </p>
-     <p>Kian Ishida is all about parties, hockey, and living in the moment. But when he realizes he’s headed to the NHL without his degree, his late dad’s one wish for him, he’s determined to make up those last few credits. Desperate for help, he joins a study group led by none other than Scarlett Kilner. She’s as gorgeous as she is smart. Too bad he doesn’t know yet that she’s his coach’s daughter.</p>
-     <p>After making a reputation for herself, all Scarlett wants for her senior year is to prove she’s more than her mistakes and graduate without tarnishing her well-respected father’s name. But when Kian Ishida, one of her dad’s star hockey players, joins her study group, things get complicated.</p>
-     <p>As Scarlett helps Kian, their study sessions turn into something more—stolen glances, lingering touches, and a connection neither of them expected. Kian has to decide what’s more important: the dream he’s worked for his whole life or the girl he never saw coming.</p>
+      <p>An unexpected spark between a hockey player and the coach's daughter might cause them to cross the line in the next Dalton University book from international bestselling author Bal Khabra. </p>
+     <p>Kian Ishida is all about parties, hockey, and living in the moment. But when he realizes he's headed to the NHL without his degree, his late dad's one wish for him, he's determined to make up those last few credits. Desperate for help, he joins a study group led by none other than Scarlett Kilner. She's as gorgeous as she is smart. Too bad he doesn't know yet that she's his coach's daughter.</p>
+     <p>After making a reputation for herself, all Scarlett wants for her senior year is to prove she's more than her mistakes and graduate without tarnishing her well-respected father's name. But when Kian Ishida, one of her dad's star hockey players, joins her study group, things get complicated.</p>
+     <p>As Scarlett helps Kian, their study sessions turn into something more—stolen glances, lingering touches, and a connection neither of them expected. Kian has to decide what's more important: the dream he's worked for his whole life or the girl he never saw coming.</p>
     `,
   },
 ];

@@ -20,9 +20,35 @@ const itemVariants = {
   },
 };
 
-const Hero = () => {
-  const icons = [Amazon, Target, Barnenobles, Booksmellion, Walmart];
+const retailers = [
+  {
+    el: <Amazon />,
+    href: 'https://www.amazon.com/stores/Bal-Khabra/author/B0B98R4XCD',
+    cls: 'flex col-span-2 col-start-2 col-end-4 justify-center w-full sm:w-24 md:w-36 p-1',
+  },
+  {
+    el: <Barnenobles />,
+    href: 'https://www.barnesandnoble.com/s/%22Bal%20Khabra%22;jsessionid=595A3B5EDDD26F5515823528CCF86A4F.prodny_store02-atgap18?Ntk=P_key_Contributor_List&Ns=P_Sales_Rank&Ntx=mode+matchall',
+    cls: 'flex col-span-2 col-start-4 col-end-6 justify-center w-full sm:w-24 md:w-36',
+  },
+  {
+    el: <Target />,
+    href: 'https://www.target.com/s?searchTerm=Bal+Khabra',
+    cls: 'flex col-span-2 row-start-2 justify-center w-[80%] sm:w-24 md:w-32',
+  },
+  {
+    el: <Walmart />,
+    href: 'https://www.walmart.com/search?q=Bal+Khabra',
+    cls: 'flex col-span-2 row-start-2 justify-center w-full sm:w-24 md:w-36',
+  },
+  {
+    el: <Booksmellion />,
+    href: 'https://www.booksamillion.com/search?query=Bal+Khabra',
+    cls: 'flex col-span-2 row-start-2 justify-center w-full sm:w-52',
+  },
+];
 
+const Hero = () => {
   return (
     <section id='#hero' className="flex flex-col justify-center relative items-center pt-40 sm:pt-36 md:pt-40 overflow-x-hidden">
       {/* Background Overlay */}
@@ -68,22 +94,19 @@ const Hero = () => {
           initial="hidden"
           animate="visible"
         >
-          {[
-            { el: <Amazon />, cls: "flex col-span-2 col-start-2 col-end-4 justify-center w-full sm:w-24 md:w-36 p-1 cursor-pointer" },
-            { el: <Barnenobles />, cls: "flex col-span-2 col-start-4 col-end-6 justify-center w-full sm:w-24 md:w-36 cursor-pointer" },
-            { el: <Target />, cls: "flex col-span-2 row-start-2 justify-center w-[80%] sm:w-24 md:w-32 cursor-pointer" },
-            { el: <Walmart />, cls: "flex col-span-2 row-start-2 justify-center w-full sm:w-24 md:w-36 cursor-pointer" },
-            { el: <Booksmellion />, cls: "flex col-span-2 row-start-2 justify-center w-full sm:w-52 cursor-pointer" },
-          ].map((item, i) => (
-            <motion.div
+          {retailers.map((item, i) => (
+            <motion.a
               key={i}
-              className={item.cls}
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={item.cls + ' cursor-pointer'}
               variants={itemVariants}
               whileHover={{ scale: 1.08, opacity: 0.85 }}
               whileTap={{ scale: 0.97 }}
             >
               {item.el}
-            </motion.div>
+            </motion.a>
           ))}
         </motion.div>
       </motion.div>
