@@ -51,21 +51,21 @@ const About = () => {
             </motion.h2>
 
             <motion.p
-              className="w-full text-base sm:text-sm md:text-lg text-justify sm:text-left lg:text-2xl font-montserrat font-normal leading-relaxed mb-4"
+              className="w-full text-sm sm:text-xs md:text-sm text-justify sm:text-left lg:text-base font-montserrat font-normal leading-relaxed mb-4"
               variants={fadeUp}
             >
               Hi there! I&apos;m Bal, your resident book lover and professional daydreamer.
             </motion.p>
 
             <motion.p
-              className="w-full text-base sm:text-sm md:text-lg text-justify sm:text-left lg:text-2xl font-montserrat font-normal leading-relaxed mb-4"
+              className="w-full text-sm sm:text-xs md:text-sm text-justify sm:text-left lg:text-base font-montserrat font-normal leading-relaxed mb-4"
               variants={fadeUp}
             >
               When I&apos;m not glued to my keyboard, juggling thirty different novel ideas, or using banter to convince my characters that they&apos;re perfect for each other, you can catch me dragging unsuspecting souls into the Great Canadian Outdoors for some fresh air (and a little inspiration).
             </motion.p>
 
             <motion.p
-              className="w-full text-base sm:text-sm md:text-lg text-justify sm:text-left lg:text-2xl font-montserrat font-normal leading-relaxed mb-4"
+              className="w-full text-sm sm:text-xs md:text-sm text-justify sm:text-left lg:text-base font-montserrat font-normal leading-relaxed mb-4"
               variants={fadeUp}
             >
               When I do write, I love to blend all my favourite things: sports, banter, diversity, and fluff! So, if that sounds like your cup of chai, stick around, and we&apos;ll embark on this literary journey together!
