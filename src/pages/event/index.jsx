@@ -7,32 +7,46 @@ import Link from "next/link";
 import { FaHeart } from "react-icons/fa";
 const events = [
   {
-    date: "October 14ᵗʰ, 2025",
-    title: "Meet Cute Bookshop",
-    location: "La Mesa, CA",
-    titleimg: "/revolvetitle.png",
-    link: " https://meetcutebookshop.com/events/3306620251014",
-  },
-  {
-    date: "October 15ᵗʰ, 2025",
-    title: "Books, Inc.",
-    location: "Mountain View, CA",
-    titleimg: "/revolvetitle.png",
-    link: "https://booksinc.net/event/2025-10-15/bal-khabra-books-inc-mountain-view",
-  },
-  {
-    date: "October 16ᵗʰ, 2025",
-    title: "The King’s English",
-    location: "Salt Lake City, UT",
-    titleimg: "/revolvetitle.png",
-    link: "https://www.eventbrite.com/e/bal-khabra-revolve-tickets-1538613276729?aff=oddtdtcreator",
-  },
-    {
-    date: "October 20ᵗʰ, 2025",
+    date: "August 3ʳᵈ (pre pub), 7pm",
     title: "The Ripped Bodice",
     location: "Brooklyn, NY",
-    titleimg: "/revolvetitle.png",
-    link: "https://www.therippedbodice.com/brooklyn-events",
+    titleimg: "/embracetitle.png",
+    link: "https://e.sparxo.com/Bal-Khabra-Embrace-BK-Ticketed",
+  },
+  {
+    date: "August 4ᵗʰ, 7pm",
+    title: "The Last Chapter",
+    location: "Chicago, IL",
+    titleimg: "/embracetitle.png",
+    link: "https://beventi.co/tickets/hiaqjky3yq",
+  },
+  {
+    date: "August 5ᵗʰ, 7pm",
+    title: "The Novel Neighbor",
+    location: "St. Louis, MO",
+    titleimg: "/embracetitle.png",
+    link: "https://thenovelneighbor.com/balkhabra",
+  },
+  {
+    date: "August 6ᵗʰ, 7pm",
+    title: "Half Price Books",
+    location: "Dallas, TX",
+    titleimg: "/embracetitle.png",
+    link: "https://www.eventbrite.com/e/talk-and-book-signing-with-bestselling-author-bal-khabra-tickets-1983391603678?aff=oddtdtcreator",
+  },
+  {
+    date: "August 7ᵗʰ, 7pm",
+    title: "Meet Cute Books",
+    location: "La Mesa, CA",
+    titleimg: "/embracetitle.png",
+    link: "https://meetcutebookshop.com/events/5137120260807",
+  },
+  {
+    date: "August 8ᵗʰ, 3pm",
+    title: "Barnes & Noble",
+    location: "Huntington Beach, CA",
+    titleimg: "/embracetitle.png",
+    link: "https://www.eventbrite.com/e/bal-khabra-celebrates-embrace-at-barnes-noble-huntington-beach-tickets-1988873003693?aff=oddtdtcreator",
   },
 ];
 
@@ -54,14 +68,14 @@ const item = {
 export default function EventsPage() {
   return (
     <Layout>
-      <div className="h-[90vh] bg-pink-50 p-4 sm:p-6 overflow-hidden">
-        <div className="text-center mb-8">
+      <div className="bg-pink-50 p-4 sm:p-6 pt-24 pb-12 overflow-y-auto">
+        <div className="text-center mb-12">
           <h1 className="text-3xl font-adobejenson  text-[#f095d8]">
             Let’s Hang Out!
           </h1>
         </div>
 
-        <div className="relative max-w-2xl mx-auto">
+        <div className="relative max-w-2xl mx-auto mt-8">
           {/* Vertical Line */}
           <div className="block absolute left-1/2 top-0 h-full w-[2px]  sm:w-1 bg-gray-300 transform -translate-x-1/2 z-0" />
 
@@ -88,7 +102,7 @@ export default function EventsPage() {
                     `}
                   />
 
-                  <div className="w-full max-w-18 sm:max-w-24 aspect-[1/0.4] relative left-0 ">
+                  <div className="w-full max-w-18 sm:max-w-24 aspect-[1/0.4] relative left-0 mb-8">
                     <Image
                       src={event.titleimg}
                       alt={event.title}
