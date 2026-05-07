@@ -68,7 +68,7 @@ const item = {
 export default function EventsPage() {
   return (
     <Layout>
-      <div className="p-4 sm:p-6 pt-36 pb-12 overflow-y-auto" style={{backgroundColor: "#fde8d8"}}>
+      <div className="p-4 sm:p-6 pt-36 md:pt-48 pb-12 overflow-y-auto" style={{backgroundColor: "#fde8d8"}}>
         <div className="text-center mb-12">
           <h1 className="text-3xl font-adobejenson" style={{color: "#ef9533"}}>
             Let’s Hang Out!
@@ -91,8 +91,8 @@ export default function EventsPage() {
                 <motion.div
                   key={index}
                   variants={item}
-                  className={`w-1/2 sm:px-6 flex flex-col gap-0 justify-center items-center mt-0  rounded relative ${
-                    isLeft ? "ml-0 mr-auto pr-4" : "mr-0 ml-auto pl-4"
+                  className={`w-full sm:w-1/2 px-4 sm:px-6 flex flex-col gap-0 justify-center items-center mt-12 sm:mt-16 rounded relative ${
+                    isLeft ? "ml-0 mr-auto sm:pr-4" : "mr-0 ml-auto sm:pl-4"
                   }`}
                 >
                   {/* Dot on timeline */}
@@ -103,13 +103,13 @@ export default function EventsPage() {
                     style={{color: "#ef9533"}}
                   />
 
-                  <div className="w-full max-w-18 sm:max-w-24 aspect-[1/0.4] relative left-0 mb-8">
+                  <div className="w-full max-w-20 sm:max-w-24 aspect-[1/0.4] relative left-0 mb-2">
                     <Image
                       src={event.titleimg}
                       alt={event.title}
                       width={300}
                       height={150}
-                      className="flex justify-start"
+                      className="w-full h-full object-cover"
                     />
                   </div>
                   <div className="font-kievitSerifBold text-gray-800 font-semibold text-base sm:text-lg uppercase">
