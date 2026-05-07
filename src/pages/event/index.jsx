@@ -68,9 +68,9 @@ const item = {
 export default function EventsPage() {
   return (
     <Layout>
-      <div className="bg-pink-50 p-4 sm:p-6 pt-24 pb-12 overflow-y-auto">
+      <div className="p-4 sm:p-6 pt-36 pb-12 overflow-y-auto" style={{backgroundColor: "#fde8d8"}}>
         <div className="text-center mb-12">
-          <h1 className="text-3xl font-adobejenson  text-[#f095d8]">
+          <h1 className="text-3xl font-adobejenson" style={{color: "#ef9533"}}>
             Let’s Hang Out!
           </h1>
         </div>
@@ -97,9 +97,10 @@ export default function EventsPage() {
                 >
                   {/* Dot on timeline */}
                   <FaHeart
-                    className={`absolute  top-1/2 w-4 h-4 sm:w-6 sm:h-6  text-[#f095d8] transform -translate-y-1/2 z-10
+                    className={`absolute  top-1/2 w-4 h-4 sm:w-6 sm:h-6 transform -translate-y-1/2 z-10
                      ${isLeft ? "-right-2 sm:-right-3" : "-left-2 sm:-left-3"}
                     `}
+                    style={{color: "#ef9533"}}
                   />
 
                   <div className="w-full max-w-18 sm:max-w-24 aspect-[1/0.4] relative left-0 mb-8">
@@ -120,7 +121,7 @@ export default function EventsPage() {
                   </div>
 
                  <Link href={event.link}>
-                   <button class="group mt-2 sm:mt-3 text-xs sm:text-sm relative bg-[#f095d8] h-6 sm:h-8  hover:text-[#f095d8] hover:bg-white inline-flex  px-3 py-2 sm:px-4 sm:py-2  items-center justify-center overflow-hidden rounded-lg border border-neutral-200   font-medium text-neutral-600 transition-all [box-shadow:0px_2px_1px_#a3a3a3] active:translate-y-[2px] active:shadow-none">
+                   <button class="group mt-2 sm:mt-3 text-xs sm:text-sm relative bg-[#ef9533] h-6 sm:h-8  hover:text-[#ef9533] hover:bg-white inline-flex  px-3 py-2 sm:px-4 sm:py-2  items-center justify-center overflow-hidden rounded-lg border border-neutral-200   font-medium text-neutral-600 transition-all [box-shadow:0px_2px_1px_#a3a3a3] active:translate-y-[2px] active:shadow-none">
                      GET TICKETS
                    </button></Link>
                 </motion.div>
