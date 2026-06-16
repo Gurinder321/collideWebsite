@@ -11,7 +11,7 @@ const events = [
     title: "The Ripped Bodice",
     location: "Brooklyn, NY",
     titleimg: "/embracetitle.png",
-    link: "https://e.sparxo.com/Bal-Khabra-Embrace-BK-Ticketed",
+    link: "https://www.eventbrite.com/e/bal-khabra-brooklyn-event-for-embrace-tickets-1991789477946?aff=oddtdtcreator",
   },
   {
     date: "August 4ᵗʰ, 7pm",
